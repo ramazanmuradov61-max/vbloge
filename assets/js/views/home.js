@@ -1,8 +1,7 @@
 import { notificationService } from "../services/notificationService.js";
-import { aiService } from "../services/aiService.js";
 import { deadlineService } from "../services/deadlineService.js";
 import { calendarEvents } from "../data.js";
-import { addMessage, enrichDeal, getChat, getState, setRole } from "../store.js";
+import { enrichDeal, getState, setRole } from "../store.js";
 import { escapeHtml, money, statusBadge } from "../components/ui.js";
 
 const roleSwitcher = (currentRole) => `
@@ -28,6 +27,17 @@ const actionCard = ({ href, icon, title, text }) => `
     <strong>${escapeHtml(title)}</strong>
     <small>${escapeHtml(text)}</small>
   </a>
+`;
+
+const smartHero = ({ kicker, title, text, href, action }) => `
+  <section class="smart-hero">
+    <div>
+      <span>${escapeHtml(kicker)}</span>
+      <strong>${escapeHtml(title)}</strong>
+      <p>${escapeHtml(text)}</p>
+    </div>
+    <a class="btn" href="${href}">${escapeHtml(action)}</a>
+  </section>
 `;
 
 const miniDeal = (deal) => `
@@ -87,12 +97,54 @@ export const homeView = {
     const balance = state.wallet?.balance || 1840000;
     const deadlines = deadlineService.list({ limit: 1 });
     const nextDeadline = deadlines[0] || { date: "6 июл", campaign: "Nike Air Max", action: "Проверить отчет", href: "#/deals/deal-nike-mila" };
-    const aiAdvice = aiService.recommendations()[0] || {
-      title: "Проверьте активные сделки",
-      text: "Есть задачи, которые лучше закрыть сегодня.",
-      href: "#/deals",
-    };
     const recentThreads = state.chatThreads.slice(0, 2);
+    const hero = isBlogger
+      ? pendingInvitations > 0
+        ? {
+            kicker: "Главное сейчас",
+            title: "У вас новое приглашение.",
+            text: "Посмотрите условия кампании и примите решение.",
+            href: "#/invitations",
+            action: "Посмотреть",
+          }
+        : visibleDeals[0]
+          ? {
+              kicker: "Следующий шаг",
+              title: "Сегодня нужно обновить сделку.",
+              text: `${visibleDeals[0].campaign?.title || visibleDeals[0].number}: проверьте этап и чат.`,
+              href: `#/deals/${visibleDeals[0].id}`,
+              action: "Открыть сделку",
+            }
+          : {
+              kicker: "AI рекомендует",
+              title: "Подберите кампанию под профиль.",
+              text: "Откройте каталог и сохраните подходящие предложения.",
+              href: "#/campaigns",
+              action: "Открыть",
+            }
+      : unread > 0
+        ? {
+            kicker: "Главное сейчас",
+            title: `Получено ${unread} новых откликов.`,
+            text: "Откройте активность и закройте срочные ответы.",
+            href: "#/notifications",
+            action: "Открыть",
+          }
+        : nextDeadline
+          ? {
+              kicker: "Дедлайн",
+              title: `До дедлайна ${nextDeadline.campaign || "кампании"} осталось немного.`,
+              text: nextDeadline.action || "Проверьте сделку и отчет.",
+              href: nextDeadline.href || "#/calendar",
+              action: "Продолжить",
+            }
+          : {
+              kicker: "AI рекомендует",
+              title: "Сегодня нет срочных задач.",
+              text: "Можно подобрать новых блогеров для активных кампаний.",
+              href: "#/bloggers",
+              action: "Подобрать",
+            };
 
     const actions = isBlogger
       ? [
@@ -118,6 +170,8 @@ export const homeView = {
           </div>
           ${roleSwitcher(state.currentRole)}
         </header>
+
+        ${smartHero(hero)}
 
         <section class="mobile-summary-card">
           <div>
@@ -168,12 +222,6 @@ export const homeView = {
           <div class="stack-list">${recentThreads.map(miniMessage).join("")}</div>
         </section>
 
-        <section class="mobile-ai-tip">
-          <span class="status blue">AI совет дня</span>
-          <strong>${escapeHtml(aiAdvice.title)}</strong>
-          <p>${escapeHtml(aiAdvice.text)}</p>
-          <a class="btn secondary" href="${aiAdvice.href}">Открыть</a>
-        </section>
       </section>
     `;
   },

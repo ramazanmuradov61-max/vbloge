@@ -63,11 +63,6 @@ export const renderShell = ({ currentPath, content }) => {
       </aside>
       <main class="workspace">
         <div class="topbar">
-          <label class="search-box">
-            <span class="tool-icon" aria-hidden="true">⌕</span>
-            <input id="global-search" type="search" autocomplete="off" placeholder="Поиск по блогерам, кампаниям и сделкам" />
-            <div class="global-search-results" id="global-search-results" hidden></div>
-          </label>
           <a class="topbar-ai-status" href="#/ai" aria-label="AI статус">
             <span aria-hidden="true">AI</span>
             <strong>online</strong>

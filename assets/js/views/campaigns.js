@@ -23,6 +23,21 @@ const campaignCard = (campaign) => `
   </article>
 `;
 
+const smartHero = ({ isBlogger, campaigns }) => {
+  const active = campaigns.find((campaign) => /актив|active/i.test(campaign.status)) || campaigns[0];
+  if (!active) return "";
+  return `
+    <section class="smart-hero">
+      <div>
+        <span>${isBlogger ? "Подбор" : "Главное сейчас"}</span>
+        <strong>${isBlogger ? "AI рекомендует открыть подходящую кампанию." : `${escapeHtml(active.title)} требует следующего шага.`}</strong>
+        <p>${isBlogger ? "Сохраните кампанию или проверьте условия перед откликом." : `Статус: ${escapeHtml(active.status)}. Проверьте блогеров, дедлайн и сделки.`}</p>
+      </div>
+      <a class="btn" href="#/campaigns/${active.id}">${isBlogger ? "Открыть" : "Продолжить"}</a>
+    </section>
+  `;
+};
+
 export const campaignsView = {
   title: "Каталог кампаний",
   render() {
@@ -38,6 +53,8 @@ export const campaignsView = {
           </div>
           ${isBlogger ? `<a class="btn secondary" href="#/favorites">Избранное</a>` : `<a class="btn" href="#campaign-create">+ Создать</a>`}
         </header>
+
+        ${smartHero({ isBlogger, campaigns })}
 
         <section class="mobile-filter-bar">
           <label class="mobile-inline-search">

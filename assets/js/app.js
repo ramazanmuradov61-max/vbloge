@@ -1,7 +1,6 @@
 import { createRouter } from "./router.js";
 import { renderShell } from "./components/layout.js";
-import { emptyState, escapeHtml } from "./components/ui.js";
-import { searchService } from "./services/searchService.js";
+import { emptyState } from "./components/ui.js";
 import { getState } from "./store.js";
 import { authView } from "./views/auth.js";
 import { roleView } from "./views/role.js";
@@ -64,96 +63,6 @@ const fallback = {
   },
 };
 
-const mountGlobalSearch = (router) => {
-  window.vblogeSearchCleanup?.();
-  const input = document.querySelector("#global-search");
-  const results = document.querySelector("#global-search-results");
-  if (!input || !results) return;
-  let activeType = "all";
-  let activeCategory = "";
-
-  const renderResults = () => {
-    const query = input.value.trim();
-    const items = searchService.query({ query, type: activeType, category: activeCategory });
-    results.hidden = false;
-    results.innerHTML = items.length
-      ? `
-        <div class="search-tools">
-          ${["all", "bloggers", "campaigns", "deals"].map((type) => `<button class="search-pill ${activeType === type ? "active" : ""}" type="button" data-search-filter="${type}">${type === "all" ? "Все" : type === "bloggers" ? "Блогеры" : type === "campaigns" ? "Кампании" : "Сделки"}</button>`).join("")}
-        </div>
-        <div class="search-tools">
-          ${searchService.categories().map((category) => `<button class="search-chip ${activeCategory === category.toLowerCase() ? "active" : ""}" type="button" data-search-category="${escapeHtml(category)}">${escapeHtml(category)}</button>`).join("")}
-        </div>
-        ${items
-          .map(
-            (item) => `
-              <a class="search-result" href="#${item.path}" data-search-path="${item.path}" data-search-title="${escapeHtml(item.title)}">
-                <span class="status blue">${escapeHtml(item.type)}</span>
-                <strong>${escapeHtml(item.title)}</strong>
-                <span class="meta">${escapeHtml(item.meta)}</span>
-              </a>
-            `,
-          )
-          .join("")}
-      `
-      : `
-        <div class="search-tools">
-          ${["all", "bloggers", "campaigns", "deals"].map((type) => `<button class="search-pill ${activeType === type ? "active" : ""}" type="button" data-search-filter="${type}">${type === "all" ? "Все" : type === "bloggers" ? "Блогеры" : type === "campaigns" ? "Кампании" : "Сделки"}</button>`).join("")}
-        </div>
-        <div class="search-suggestions">
-          <strong>Последние поиски</strong>
-          <div class="search-tools">${(searchService.recent().length ? searchService.recent() : ["Mila Fresh", "Nike"]).map((item) => `<button class="search-chip" type="button" data-search-query="${escapeHtml(item)}">${escapeHtml(item)}</button>`).join("")}</div>
-          <strong>Популярные запросы</strong>
-          <div class="search-tools">${searchService.popular().map((item) => `<button class="search-chip" type="button" data-search-query="${escapeHtml(item)}">${escapeHtml(item)}</button>`).join("")}</div>
-          <strong>Категории</strong>
-          <div class="search-tools">${searchService.categories().map((item) => `<button class="search-chip" type="button" data-search-category="${escapeHtml(item)}">${escapeHtml(item)}</button>`).join("")}</div>
-        </div>
-      `;
-  };
-
-  input.addEventListener("input", renderResults);
-  input.addEventListener("focus", renderResults);
-  input.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      input.value = "";
-      results.hidden = true;
-    }
-  });
-  results.addEventListener("click", (event) => {
-    const target = event.target.closest("[data-search-path]");
-    const filter = event.target.closest("[data-search-filter]");
-    const category = event.target.closest("[data-search-category]");
-    const query = event.target.closest("[data-search-query]");
-    if (filter) {
-      activeType = filter.dataset.searchFilter || "all";
-      renderResults();
-      return;
-    }
-    if (category) {
-      activeCategory = activeCategory === category.dataset.searchCategory.toLowerCase() ? "" : category.dataset.searchCategory.toLowerCase();
-      if (!input.value.trim()) input.value = category.dataset.searchCategory;
-      renderResults();
-      return;
-    }
-    if (query) {
-      input.value = query.dataset.searchQuery;
-      searchService.remember(input.value);
-      renderResults();
-      return;
-    }
-    if (target) {
-      event.preventDefault();
-      searchService.remember(target.dataset.searchTitle || input.value);
-      router.go(target.dataset.searchPath);
-    }
-  });
-  const closeSearch = (event) => {
-    if (!event.target.closest(".search-box")) results.hidden = true;
-  };
-  document.addEventListener("click", closeSearch);
-  window.vblogeSearchCleanup = () => document.removeEventListener("click", closeSearch);
-};
-
 const router = createRouter({
   routes,
   fallback,
@@ -168,7 +77,6 @@ const router = createRouter({
     const content = view.render({ params, path, router });
     app.innerHTML = route.public ? content : renderShell({ currentPath: path, content });
     view.mount?.({ params, path, router });
-    if (!route.public) mountGlobalSearch(router);
     const savedScroll = window.vblogeScrollPositions?.[path];
     window.vblogePreviousPath = path;
     requestAnimationFrame(() => window.scrollTo({ top: savedScroll || 0, behavior: "auto" }));
