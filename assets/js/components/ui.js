@@ -1,0 +1,211 @@
+export const escapeHtml = (value = "") =>
+  String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+export const money = (value) =>
+  new Intl.NumberFormat("ru-RU", {
+    style: "currency",
+    currency: "RUB",
+    maximumFractionDigits: 0,
+  }).format(value);
+
+export const initials = (name = "") =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+
+export const avatar = (name) => `<span class="avatar" aria-hidden="true">${escapeHtml(initials(name))}</span>`;
+
+export const statusColor = (status = "") => {
+  if (/провер|актив|опла|зачис|подпис|заверш|accepted|прочит|готов|success/i.test(status)) return "green";
+  if (/подбор|соглас|бриф|escrow|работ|анализ/i.test(status)) return "blue";
+  if (/ожида|резерв|ответ|сценар|pending|нов|loading/i.test(status)) return "amber";
+  return "rose";
+};
+
+export const statusBadge = (status) => `<span class="status ${statusColor(status)}">${escapeHtml(status)}</span>`;
+
+export const button = ({ label, href = "", variant = "primary", type = "button", attrs = "" }) => {
+  const classes = ["btn", variant !== "primary" ? variant : ""].filter(Boolean).join(" ");
+  return href
+    ? `<a class="${classes}" href="${href}" ${attrs}>${escapeHtml(label)}</a>`
+    : `<button class="${classes}" type="${type}" ${attrs}>${escapeHtml(label)}</button>`;
+};
+
+export const chip = (label, tone = "blue") => `<span class="chip ${tone}">${escapeHtml(label)}</span>`;
+
+export const badge = (label, tone = "blue") => `<span class="badge ${tone}">${escapeHtml(label)}</span>`;
+
+export const tabs = ({ items = [], active = "" }) => `
+  <div class="tabs" role="tablist">
+    ${items
+      .map(
+        (item) => `
+          <a class="tab ${item.id === active ? "active" : ""}" href="${item.href}" role="tab" aria-selected="${item.id === active ? "true" : "false"}">
+            ${escapeHtml(item.label)}
+          </a>
+        `,
+      )
+      .join("")}
+  </div>
+`;
+
+export const breadcrumb = (items = []) => `
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    ${items
+      .map((item, index) =>
+        item.href && index < items.length - 1
+          ? `<a href="${item.href}">${escapeHtml(item.label)}</a>`
+          : `<span aria-current="page">${escapeHtml(item.label)}</span>`,
+      )
+      .join('<span class="breadcrumb-separator" aria-hidden="true">/</span>')}
+  </nav>
+`;
+
+export const toast = ({ text, tone = "green" }) => `
+  <div class="toast ${tone}" role="status">
+    <strong>${escapeHtml(text)}</strong>
+  </div>
+`;
+
+export const modal = ({ id, title, body, actions = "" }) => `
+  <div class="modal-backdrop" id="${escapeHtml(id)}" hidden>
+    <section class="modal card pad" role="dialog" aria-modal="true" aria-labelledby="${escapeHtml(id)}-title">
+      <div class="section-title">
+        <h2 id="${escapeHtml(id)}-title">${escapeHtml(title)}</h2>
+        <button class="btn ghost compact" type="button" data-modal-close="${escapeHtml(id)}" aria-label="Закрыть">×</button>
+      </div>
+      ${body}
+      ${actions ? `<div class="button-row">${actions}</div>` : ""}
+    </section>
+  </div>
+`;
+
+export const bottomSheet = ({ id, title, body, actions = "" }) => `
+  <div class="bottom-sheet-backdrop" id="${escapeHtml(id)}" hidden>
+    <section class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="${escapeHtml(id)}-title">
+      <div class="bottom-sheet-handle" aria-hidden="true"></div>
+      <div class="section-title">
+        <h2 id="${escapeHtml(id)}-title">${escapeHtml(title)}</h2>
+        <button class="btn ghost compact" type="button" data-bottom-sheet-close="${escapeHtml(id)}" aria-label="Закрыть">×</button>
+      </div>
+      ${body}
+      ${actions ? `<div class="button-row">${actions}</div>` : ""}
+    </section>
+  </div>
+`;
+
+export const kpiCard = ({ label, value, meta = "", tone = "blue" }) => `
+  <article class="card pad kpi-card ${tone}">
+    <span class="metric-label">${escapeHtml(label)}</span>
+    <strong class="metric-value">${escapeHtml(value)}</strong>
+    ${meta ? `<small>${escapeHtml(meta)}</small>` : ""}
+  </article>
+`;
+
+export const pageHeader = ({ eyebrow, title, lead, actions = "" }) => `
+  <header class="page-header">
+    <div>
+      ${eyebrow ? `<p class="eyebrow">${escapeHtml(eyebrow)}</p>` : ""}
+      <h1>${escapeHtml(title)}</h1>
+      ${lead ? `<p class="lead">${escapeHtml(lead)}</p>` : ""}
+    </div>
+    ${actions ? `<div class="button-row">${actions}</div>` : ""}
+  </header>
+`;
+
+export const metricCard = ({ label, value, trend, direction = "up" }) => `
+  <article class="card pad metric-card">
+    <span class="metric-label">${escapeHtml(label)}</span>
+    <strong class="metric-value">${escapeHtml(value)}</strong>
+    <span class="metric-trend ${direction}">${escapeHtml(trend)}</span>
+  </article>
+`;
+
+export const progressBar = (value) => `
+  <div class="progress" aria-label="Прогресс ${Number(value)}%">
+    <span style="width: ${Math.max(0, Math.min(100, Number(value)))}%"></span>
+  </div>
+`;
+
+const normalizeRows = (rows) => (Array.isArray(rows) ? rows.join("") : rows);
+
+const rowToCells = (row) => [...String(row).matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((match) => match[1]);
+
+const tableCards = ({ headers, rows }) => {
+  const rowMarkup = normalizeRows(rows);
+  const rowMatches = [...String(rowMarkup).matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)];
+
+  return `
+    <div class="mobile-table-cards">
+      ${rowMatches
+        .map((rowMatch) => {
+          const cells = rowToCells(rowMatch[1]);
+          return `
+            <article class="mobile-table-card">
+              ${headers
+                .map(
+                  (header, index) => `
+                    <div class="mobile-table-row">
+                      <span>${escapeHtml(header)}</span>
+                      <strong>${cells[index] || ""}</strong>
+                    </div>
+                  `,
+                )
+                .join("")}
+            </article>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+};
+
+export const table = ({ headers, rows }) => `
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr>
+      </thead>
+      <tbody>${normalizeRows(rows)}</tbody>
+    </table>
+    ${tableCards({ headers, rows })}
+  </div>
+`;
+
+export const emptyState = (text) => `<div class="empty">${escapeHtml(text)}</div>`;
+
+export const loadingState = (text = "Загрузка данных") => `
+  <div class="state-card loading-state" role="status">
+    <span class="spinner" aria-hidden="true"></span>
+    <strong>${escapeHtml(text)}</strong>
+  </div>
+`;
+
+export const successState = (text = "Готово") => `
+  <div class="state-card success-state">
+    <span class="state-icon" aria-hidden="true">✓</span>
+    <strong>${escapeHtml(text)}</strong>
+  </div>
+`;
+
+export const errorState = (text = "Не удалось выполнить действие") => `
+  <div class="state-card error-state">
+    <span class="state-icon" aria-hidden="true">!</span>
+    <strong>${escapeHtml(text)}</strong>
+  </div>
+`;
+
+export const skeletonState = (lines = 3) => `
+  <div class="skeleton-card" aria-hidden="true">
+    ${Array.from({ length: lines }, (_, index) => `<span class="skeleton-line ${index === 0 ? "wide" : ""}"></span>`).join("")}
+  </div>
+`;
