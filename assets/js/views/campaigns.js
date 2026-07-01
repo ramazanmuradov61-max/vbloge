@@ -1,5 +1,27 @@
 import { createCampaign, getState, isFavorite, toggleFavorite } from "../store.js";
-import { escapeHtml, money, pageHeader, progressBar, statusBadge } from "../components/ui.js";
+import { escapeHtml, money, statusBadge } from "../components/ui.js";
+
+const campaignCard = (campaign) => `
+  <article class="campaign-card">
+    <a href="#/campaigns/${campaign.id}" class="campaign-card-main">
+      <span class="campaign-card-icon" aria-hidden="true">▣</span>
+      <span>
+        <strong>${escapeHtml(campaign.title)}</strong>
+        <small>${escapeHtml(campaign.brand)} · ${escapeHtml(campaign.category || "Категория")}</small>
+      </span>
+    </a>
+    <div class="campaign-card-meta">
+      ${statusBadge(campaign.status)}
+      <span>${money(campaign.budget)}</span>
+      <span>${escapeHtml(campaign.deadline || campaign.dates || "Без срока")}</span>
+    </div>
+    <div class="campaign-card-footer">
+      <span>${campaign.bloggerIds?.length || 0} блогеров</span>
+      <a href="#/campaigns/${campaign.id}">Следующий шаг</a>
+      <button class="btn secondary compact" type="button" data-fav-campaign="${escapeHtml(campaign.id)}" aria-label="Избранное">${isFavorite("campaigns", campaign.id) ? "★" : "☆"}</button>
+    </div>
+  </article>
+`;
 
 export const campaignsView = {
   title: "Каталог кампаний",
@@ -7,19 +29,35 @@ export const campaignsView = {
     const { campaigns, currentRole } = getState();
     const isBlogger = currentRole === "blogger";
     return `
-      <section class="page">
-        ${pageHeader({
-          eyebrow: "Каталог",
-          title: "Рекламные кампании",
-          lead: "Создайте РК, пригласите блогера и доведите сделку до завершения.",
-          actions: `<a class="btn secondary" href="#/favorites"><span class="tool-icon">★</span>Избранное</a>`,
-        })}
+      <section class="page mobile-campaigns">
+        <header class="mobile-page-title">
+          <div>
+            <p class="eyebrow">Кампании</p>
+            <h1>${isBlogger ? "Доступные кампании" : "Мои кампании"}</h1>
+            <p class="lead">${isBlogger ? "Выберите подходящую РК и откройте детали." : "Создавайте РК, приглашайте блогеров и ведите сделки."}</p>
+          </div>
+          ${isBlogger ? `<a class="btn secondary" href="#/favorites">Избранное</a>` : `<a class="btn" href="#campaign-create">+ Создать</a>`}
+        </header>
+
+        <section class="mobile-filter-bar">
+          <label class="mobile-inline-search">
+            <span aria-hidden="true">⌕</span>
+            <input type="search" placeholder="Найти кампанию" aria-label="Найти кампанию" />
+          </label>
+          <div class="search-tools">
+            <button class="search-chip active" type="button">Все</button>
+            <button class="search-chip" type="button">Активные</button>
+            <button class="search-chip" type="button">Подбор</button>
+            <button class="search-chip" type="button">Дедлайны</button>
+          </div>
+        </section>
+
         ${
           isBlogger
             ? ""
             : `
-              <section class="card pad">
-                <h2>Создать рекламную кампанию</h2>
+              <details class="card pad campaign-create" id="campaign-create">
+                <summary>+ Создать рекламную кампанию</summary>
                 <form class="form campaign-form" id="campaign-form">
                   <div class="grid cols-2">
                     <div class="field">
@@ -43,47 +81,26 @@ export const campaignsView = {
                       <input id="campaign-deadline" name="deadline" type="date" value="2026-08-15" required />
                     </div>
                     <div class="field">
-                      <label for="campaign-attachments">Вложения (демо)</label>
+                      <label for="campaign-attachments">Вложения</label>
                       <input id="campaign-attachments" name="attachments" type="file" multiple />
                     </div>
                   </div>
                   <div class="field">
                     <label for="campaign-description">Описание</label>
-                    <textarea id="campaign-description" name="description" required>Нужно нативно рассказать о продукте и привести аудиторию на посадочную страницу.</textarea>
+                    <textarea id="campaign-description" name="description" required>Нативно рассказать о продукте и привести аудиторию на посадочную страницу.</textarea>
                   </div>
                   <div class="field">
                     <label for="campaign-requirements">Требования</label>
-                    <textarea id="campaign-requirements" name="requirements" required>Сценарий до публикации, маркировка рекламы, ссылка, промокод, отчет по охватам.</textarea>
+                    <textarea id="campaign-requirements" name="requirements" required>Сценарий, маркировка рекламы, ссылка, промокод, отчет по охватам.</textarea>
                   </div>
-                  <button class="btn" type="submit"><span class="tool-icon">+</span>Создать РК</button>
+                  <button class="btn" type="submit">Создать РК</button>
                 </form>
-              </section>
+              </details>
             `
         }
-        <div class="grid">
-          ${campaigns
-            .map(
-              (campaign) => `
-                <article class="card pad clickable-card">
-                  <div class="list-item">
-                    <a href="#/campaigns/${campaign.id}">
-                      <h2>${escapeHtml(campaign.title)}</h2>
-                      <p class="meta">${escapeHtml(campaign.brand)} · ${escapeHtml(campaign.dates || campaign.deadline || "Без срока")}</p>
-                    </a>
-                    <button class="btn secondary compact" type="button" data-fav-campaign="${escapeHtml(campaign.id)}">${isFavorite("campaigns", campaign.id) ? "★" : "☆"}</button>
-                  </div>
-                  <a href="#/campaigns/${campaign.id}">
-                    <p class="lead">${escapeHtml(campaign.goal || campaign.description)}</p>
-                    ${progressBar(campaign.progress || 0)}
-                  </a>
-                  <div class="list-item">
-                    <span>Бюджет: <strong>${money(campaign.budget)}</strong></span>
-                    ${statusBadge(campaign.status)}
-                  </div>
-                </article>
-              `,
-            )
-            .join("")}
+
+        <div class="campaign-list">
+          ${campaigns.map(campaignCard).join("")}
         </div>
       </section>
     `;

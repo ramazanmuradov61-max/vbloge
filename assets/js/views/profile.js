@@ -2,7 +2,7 @@ import { analyticsService } from "../services/analyticsService.js";
 import { companyService } from "../services/companyService.js";
 import { reviewService } from "../services/reviewService.js";
 import { scoreService } from "../services/scoreService.js";
-import { getBlogger, getDealsForBlogger, getState } from "../store.js";
+import { getBlogger, getDealsForBlogger, getState, setRole } from "../store.js";
 import { avatar, escapeHtml, money, pageHeader, statusBadge } from "../components/ui.js";
 
 export const profileView = {
@@ -26,6 +26,10 @@ export const profileView = {
           lead: isBlogger ? "Публичные показатели автора, портфолио, сделки, отзывы и динамика AI Score." : "Компания закупщика: команда, финансы, кампании, отзывы и рейтинг.",
           actions: `<a class="btn secondary" href="#/role">Сменить роль</a>`,
         })}
+        <div class="role-switcher profile-role-switcher" aria-label="Переключатель роли">
+          <button class="${currentRole === "buyer" ? "active" : ""}" type="button" data-role-switch="buyer">Закупщик</button>
+          <button class="${currentRole === "blogger" ? "active" : ""}" type="button" data-role-switch="blogger">Блогер</button>
+        </div>
         <section class="split">
           <div class="card pad">
             <div class="profile-head">
@@ -143,5 +147,21 @@ export const profileView = {
         }
       </section>
     `;
+  },
+  mount({ router }) {
+    document.querySelectorAll("[data-role-switch]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const role = button.dataset.roleSwitch;
+        setRole(role);
+        const current = document.querySelector(".role-toast");
+        current?.remove();
+        const toast = document.createElement("div");
+        toast.className = "role-toast";
+        toast.textContent = `Роль: ${role === "blogger" ? "Блогер" : "Закупщик"}`;
+        document.body.append(toast);
+        window.setTimeout(() => toast.remove(), 1400);
+        router.replace("/profile");
+      });
+    });
   },
 };
