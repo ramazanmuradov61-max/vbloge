@@ -19,19 +19,22 @@ export const dealsView = {
         })}
         ${table({
           headers: ["ID", "Кампания", "Блогер", "Сумма", "Статус", "Срок", "Чат"],
-          rows: deals.map(
-            (deal) => `
+          rows: deals.map((deal) => {
+            const campaign = deal.campaign || { id: deal.campaignId || "", title: "Кампания не найдена" };
+            const blogger = deal.blogger || { id: deal.bloggerId || "", name: "Блогер не найден" };
+
+            return `
               <tr>
                 <td><a href="#/deals/${deal.id}">${escapeHtml(deal.number)}</a></td>
-                <td><a href="#/campaigns/${deal.campaign.id}">${escapeHtml(deal.campaign.title)}</a></td>
-                <td><a href="#/bloggers/${deal.blogger.id}">${escapeHtml(deal.blogger.name)}</a></td>
+                <td>${campaign.id ? `<a href="#/campaigns/${campaign.id}">${escapeHtml(campaign.title)}</a>` : escapeHtml(campaign.title)}</td>
+                <td>${blogger.id ? `<a href="#/bloggers/${blogger.id}">${escapeHtml(blogger.name)}</a>` : escapeHtml(blogger.name)}</td>
                 <td>${money(deal.amount)}</td>
                 <td>${statusBadge(deal.status)}</td>
-                <td>${escapeHtml(deal.due)}</td>
+                <td>${escapeHtml(deal.due || "Без срока")}</td>
                 <td><a href="#/chat/${deal.chatId}">Открыть</a></td>
               </tr>
-            `,
-          ),
+            `;
+          }),
         })}
       </section>
     `;

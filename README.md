@@ -1,5 +1,18 @@
 # vbloge SPA
 
+## VBloge 4.0 - Deal OS Workflow Redesign
+
+Этап 4.0 переводит Premium Deal Room в центральный workflow-экран продукта. Архитектура, Store, Router, Service Layer и бизнес-логика не менялись.
+
+Что изменилось:
+
+- Сделка стала главным рабочим пространством: Deal Hero, горизонтальный Timeline, Current Step, одна Primary Action, Activity Feed, Materials, Participants и AI Assistant.
+- Chat preview и история действий объединены в единую ленту активности сделки: события, сообщения, документы, материалы и AI-рекомендации читаются в одном потоке.
+- Primary Action теперь вычисляется по роли, статусу сделки и permissions: пользователь видит только один главный следующий шаг.
+- Материалы вынесены из переписки в отдельный блок: ТЗ, документы, ссылки, креативы и demo-файлы остаются на виду.
+- Добавлен визуальный countdown и единая логика status colors: gray, blue, orange, green, red.
+- Deal Room проверен на `390px` и `430px`: без horizontal overflow, с одним главным CTA и понятным ответственным на каждом этапе.
+
 ## VBloge 3.1 - Design System & Premium Mobile UI
 
 Этап 3.1 фокусируется только на визуальной системе и мобильном UX. Архитектура, Store, Router, Service Layer и бизнес-логика сохранены без переписывания.

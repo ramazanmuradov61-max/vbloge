@@ -4,86 +4,237 @@ import { escrowService } from "../services/escrowService.js";
 import { permissionService } from "../services/permissionService.js";
 import { reportService } from "../services/reportService.js";
 import { reviewService } from "../services/reviewService.js";
-import { emptyState, escapeHtml, money, pageHeader, progressBar, statusBadge } from "../components/ui.js";
+import { emptyState, escapeHtml, money, statusBadge } from "../components/ui.js";
 
-const briefCard = (label, value) => `
-  <div class="compact-card">
+const workflowStages = [
+  { key: "invite", title: "Приглашение", match: [0, 1] },
+  { key: "brief", title: "ТЗ", match: [2] },
+  { key: "creative", title: "Креатив", match: [3, 4] },
+  { key: "publish", title: "Публикация", match: [5] },
+  { key: "payment", title: "Оплата", match: [6, 7, 8] },
+  { key: "review", title: "Отзывы", match: [9] },
+];
+
+const safe = (value, fallback = "Не задано") => escapeHtml(value || fallback);
+
+const statusTone = (deal, report, escrow) => {
+  if (/правк|problem|ошиб|risk/i.test(`${deal.status} ${report.reviewStatus} ${escrow.paymentStatus}`)) return "orange";
+  if (deal.review || Number(deal.stageIndex || 0) >= 6) return "green";
+  if (Number(deal.stageIndex || 0) >= 2) return "blue";
+  return "gray";
+};
+
+const countdown = (deal) => {
+  const label = Number(deal.stageIndex || 0) >= 5 ? "До оплаты" : "До публикации";
+  const value = Number(deal.stageIndex || 0) >= 5 ? "5 часов" : "2 дня";
+  return { label, value };
+};
+
+const currentWorkflowIndex = (currentStageIndex) => {
+  const index = workflowStages.findIndex((stage) => stage.match.includes(currentStageIndex));
+  return Math.max(0, index);
+};
+
+const workflowTimeline = (currentStageIndex) => {
+  const current = currentWorkflowIndex(currentStageIndex);
+  return `
+    <section class="workflow-timeline" aria-label="Прогресс сделки">
+      ${workflowStages
+        .map(
+          (stage, index) => `
+            <div class="workflow-stage ${index < current ? "completed" : ""} ${index === current ? "current" : ""} ${index > current ? "upcoming" : ""}">
+              <span aria-hidden="true">${index < current ? "✓" : index + 1}</span>
+              <strong>${escapeHtml(stage.title)}</strong>
+            </div>
+          `,
+        )
+        .join("")}
+    </section>
+  `;
+};
+
+const primaryStep = ({ deal, report, isBuyer, canPay, canApprove, canUploadMaterials, canUploadReport, canReview, canWithdraw }) => {
+  const stageIndex = Number(deal.stageIndex || 0);
+  const hasReport = Boolean(report.publicationUrl || deal.report);
+  const isInvitationStatus = /приглаш|invitation/i.test(`${deal.status} ${deal.stage}`);
+
+  if (stageIndex <= 0 || isInvitationStatus) {
+    return {
+      status: "Ожидается принятие приглашения",
+      title: "Блогер должен подтвердить участие",
+      text: "Сделка создана, но следующий рабочий этап начнется после принятия условий.",
+      action: isBuyer ? "Открыть ленту" : "Проверить условия",
+      actionType: "activity",
+      owner: "Блогер",
+    };
+  }
+
+  if (canPay && stageIndex >= 1) {
+    return {
+      status: "Ожидается действие закупщика",
+      title: "Подтвердите оплату в escrow",
+      text: "После оплаты блогер увидит, что бюджет зафиксирован, и сможет спокойно готовить интеграцию.",
+      action: "Подтвердить оплату",
+      actionType: "pay",
+      owner: "Закупщик",
+    };
+  }
+
+  if (canUploadMaterials && stageIndex < 4) {
+    return {
+      status: "Ожидается действие блогера",
+      title: "Загрузите креатив или материалы",
+      text: "Добавьте ссылку, файл demo или комментарий, чтобы закупщик мог быстро утвердить следующий шаг.",
+      action: "Загрузить креатив",
+      actionType: "materials",
+      owner: "Блогер",
+    };
+  }
+
+  if (isBuyer && stageIndex >= 3 && !hasReport) {
+    return {
+      status: "Ожидается действие блогера",
+      title: "Ждем материалы или публикацию",
+      text: "У блогера следующий шаг. При необходимости отправьте короткое напоминание в ленту сделки.",
+      action: "Открыть ленту",
+      actionType: "activity",
+      owner: "Блогер",
+    };
+  }
+
+  if (canUploadReport && !hasReport) {
+    return {
+      status: "Ожидается публикация",
+      title: "Отправьте отчет по интеграции",
+      text: "Нужны ссылка на публикацию, охват, просмотры, клики и короткий комментарий.",
+      action: "Отправить отчет",
+      actionType: "report",
+      owner: "Блогер",
+    };
+  }
+
+  if (canReview && stageIndex >= 6) {
+    return {
+      status: "Финальный шаг",
+      title: "Оставьте отзыв по сделке",
+      text: "Оценка и теги помогут обновить рейтинг и историю сотрудничества.",
+      action: "Оставить отзыв",
+      actionType: "review",
+      owner: isBuyer ? "Закупщик" : "Блогер",
+    };
+  }
+
+  if (canApprove && hasReport) {
+    return {
+      status: "Ожидается действие закупщика",
+      title: "Проверьте отчет и подтвердите результат",
+      text: "Сверьте ссылку, метрики, CTA и отметьте отчет как подтвержденный.",
+      action: "Утвердить отчет",
+      actionType: "approve-report",
+      owner: "Закупщик",
+    };
+  }
+
+  if (canWithdraw) {
+    return {
+      status: "Ожидается выплата",
+      title: "Запросите выплату по завершенной работе",
+      text: "Сделка готова к финансовому закрытию. Запрос будет зафиксирован в ленте.",
+      action: "Запросить выплату",
+      actionType: "withdraw",
+      owner: "Блогер",
+    };
+  }
+
+  return {
+    status: "Сделка в работе",
+    title: "Следующий шаг уже зафиксирован",
+    text: "Проверьте ленту активности и при необходимости напишите участнику сделки.",
+    action: isBuyer ? "Перейти к этапу" : "Открыть ленту",
+    actionType: isBuyer ? "next-stage" : "activity",
+    owner: isBuyer ? "Закупщик" : "Обе стороны",
+  };
+};
+
+const materialItem = (material) => `
+  <a class="workflow-material" href="${escapeHtml(material.url || "#")}" target="_blank" rel="noreferrer">
+    <span class="workflow-material-icon" aria-hidden="true">${material.type === "link" ? "↗" : "PDF"}</span>
     <span>
-      <strong>${escapeHtml(label)}</strong>
-      <small>${escapeHtml(value || "Не задано")}</small>
+      <strong>${safe(material.title)}</strong>
+      <small>${safe(material.comment || material.url)}</small>
     </span>
-  </div>
-`;
-
-const timelineStep = (step, index, current) => `
-  <article class="premium-timeline-step ${index < current ? "done" : ""} ${index === current ? "current" : ""}">
-    <span>${index + 1}</span>
-    <strong>${escapeHtml(step.title)}</strong>
-    <small>${escapeHtml(step.status)} · ${escapeHtml(step.date)}</small>
-    <p>${escapeHtml(step.description)}</p>
-    <em>${escapeHtml(step.action)}</em>
-  </article>
-`;
-
-const materialCard = (material) => `
-  <a class="compact-card" href="${escapeHtml(material.url || "#")}" target="_blank" rel="noreferrer">
-    <span>
-      <strong>${escapeHtml(material.title)}</strong>
-      <small>${escapeHtml(material.type)} · ${escapeHtml(material.url)} · ${escapeHtml(material.comment)}</small>
-    </span>
-    ${statusBadge(material.createdAt)}
   </a>
 `;
 
-const documentCard = (document) => `
-  <div class="compact-card">
+const documentItem = (document) => `
+  <button class="workflow-material" type="button" data-document-id="${escapeHtml(document.id)}">
+    <span class="workflow-material-icon" aria-hidden="true">DOC</span>
     <span>
-      <strong>${escapeHtml(document.type)}</strong>
-      <small>${escapeHtml(document.date)}</small>
+      <strong>${safe(document.type)}</strong>
+      <small>${safe(document.status)} · ${safe(document.date)}</small>
     </span>
-    <div class="button-row">
-      ${statusBadge(document.status)}
-      <button class="btn secondary" type="button" data-document-id="${document.id}">Открыть demo</button>
-      <a class="btn secondary" href="${document.href}">Скачать demo</a>
-    </div>
-  </div>
+  </button>
 `;
 
-const activityCard = (item) => `
-  <div class="activity-row">
-    <span class="activity-dot" aria-hidden="true"></span>
+const participant = ({ label, name, meta, href }) => `
+  <a class="workflow-participant" href="${href}">
+    <span>${escapeHtml(label)}</span>
+    <strong>${escapeHtml(name)}</strong>
+    <small>${escapeHtml(meta || "")}</small>
+  </a>
+`;
+
+const feedStatus = (item) => `
+  <article class="workflow-feed-item event">
+    <span class="workflow-feed-icon" aria-hidden="true">✓</span>
     <div>
-      <strong>${escapeHtml(item.actor)} · ${escapeHtml(item.action)}</strong>
-      <small>${escapeHtml(item.time || item.createdAt)} · ${escapeHtml(item.stage)} ${item.meta ? `· ${escapeHtml(item.meta)}` : ""}</small>
+      <strong>${safe(item.action)}</strong>
+      <small>${safe(item.actor)} · ${safe(item.time || item.createdAt)}${item.meta ? ` · ${safe(item.meta)}` : ""}</small>
     </div>
+  </article>
+`;
+
+const feedMessage = (message) => `
+  <article class="workflow-feed-item message ${message.mine ? "mine" : ""}">
+    <span class="workflow-feed-icon" aria-hidden="true">${message.mine ? "Вы" : "msg"}</span>
+    <div>
+      <strong>${safe(message.author || "Сообщение")}</strong>
+      <p>${safe(message.text)}</p>
+      <small>${safe(message.time || "")}</small>
+    </div>
+  </article>
+`;
+
+const briefLine = (label, value) => `
+  <div class="workflow-brief-line">
+    <span>${escapeHtml(label)}</span>
+    <strong>${safe(value)}</strong>
   </div>
 `;
 
-const messageCard = (message) => `
-  <div class="message ${message.mine ? "mine" : ""}">
-    <span>${escapeHtml(message.text)}</span>
-    <small>${escapeHtml(message.time || "")}</small>
-  </div>
-`;
-
-const suggestionCard = (label, items) => `
-  <div class="compact-card">
-    <span>
-      <strong>${escapeHtml(label)}</strong>
-      <small>${items.map(escapeHtml).join(" · ")}</small>
-    </span>
-  </div>
-`;
+const reviewList = (reviews) =>
+  reviews.length
+    ? reviews
+        .map(
+          (review) => `
+            <div class="workflow-review">
+              <strong>${escapeHtml(review.rating)}/5 · ${safe(review.fromRole)}</strong>
+              <small>${safe(review.comment)} · ${(review.tags || []).map(escapeHtml).join(", ")}</small>
+            </div>
+          `,
+        )
+        .join("")
+    : `<div class="workflow-empty">Отзывов по сделке пока нет.</div>`;
 
 export const dealDetailView = {
-  title: "Premium Deal Room",
+  title: "Deal OS",
   render({ params }) {
     const room = dealRoomService.get(params.id);
     if (!room) return emptyState("Сделка не найдена.");
 
-    const { deal, escrow, report, brief, timeline, currentStageIndex, progress, materials, documents, activity, suggestions, messages } = room;
-    const roleLabel = permissionService.label();
+    const { deal, escrow, report, brief, currentStageIndex, materials, documents, activity, suggestions, messages } = room;
     const isBuyer = permissionService.isBuyer();
+    const roleLabel = permissionService.label();
     const canPay = permissionService.canPay(deal);
     const canManageEscrow = permissionService.canManageEscrow(deal);
     const canApprove = permissionService.canApprove(deal);
@@ -93,253 +244,252 @@ export const dealDetailView = {
     const canReview = permissionService.canLeaveReview(deal);
     const canReplyChat = permissionService.canReplyChat(deal);
     const canWithdraw = permissionService.canWithdraw(deal);
+    const step = primaryStep({ deal, report, isBuyer, canPay, canApprove, canUploadMaterials, canUploadReport, canReview, canWithdraw });
+    const timer = countdown(deal);
+    const tone = statusTone(deal, report, escrow);
     const dealReviews = reviewService.listForDeal(deal.id);
+    const feed = [
+      ...activity.slice(0, 5).map((item) => ({ type: "event", item })),
+      ...messages.slice(-3).map((item) => ({ type: "message", item })),
+      { type: "event", item: { actor: "AI", action: suggestions.important, time: "сейчас", meta: "рекомендация" } },
+    ];
 
     return `
-      <section class="page deal-os deal-room-page">
-        ${pageHeader({
-          eyebrow: "Premium Deal Room",
-          title: `${deal.number} · ${isBuyer ? "Управление сделкой" : "Выполнение задания"}`,
-          lead: `${deal.campaign.title} · ${deal.blogger.name}: ${deal.deliverable}`,
-          actions: `
-            <span class="role-chip">${roleLabel}</span>
-            <a class="btn secondary" href="#/deals">Назад</a>
-            <a class="btn secondary" href="#/ai-manager/${deal.campaign.id}">AI Plan кампании</a>
-            <a class="btn secondary" href="#/chat/${deal.chatId}">Открыть чат</a>
-            ${isBuyer ? `<button class="btn" type="button" id="next-stage">Следующий этап</button>` : ""}
-          `,
-        })}
-
-        <section class="deal-room-hero card pad">
-          <div>
-            <div class="button-row">
-              ${statusBadge(deal.status)}
-              ${statusBadge(room.room.workspaceStatus)}
-              <span class="premium-badge">${isBuyer ? "Buyer controls" : "Creator workspace"}</span>
-            </div>
-            <h2>${escapeHtml(deal.campaign.brand)} x ${escapeHtml(deal.blogger.name)}</h2>
-            <p class="lead">${escapeHtml(deal.campaign.goal || deal.campaign.description)}</p>
-            <div class="deal-room-progress">
-              ${progressBar(progress)}
-              <span>${progress}% · ${escapeHtml(timeline[currentStageIndex]?.title || deal.status)}</span>
-            </div>
-          </div>
-          <aside class="deal-room-summary">
-            <div><span>Бюджет</span><strong>${money(deal.amount)}</strong></div>
-            <div><span>Дедлайн</span><strong>${escapeHtml(deal.due || deal.campaign.deadline)}</strong></div>
-            <div><span>Escrow</span><strong>${escapeHtml(escrow.paymentStatus)}</strong></div>
-            <div><span>Этап</span><strong>${escapeHtml(deal.stage || deal.status)}</strong></div>
-          </aside>
-        </section>
-
-        <nav class="deal-quick-actions card pad" aria-label="Быстрые действия сделки">
-          <a class="btn secondary" href="#deal-brief">ТЗ</a>
-          <a class="btn secondary" href="#deal-escrow">Escrow</a>
-          <a class="btn secondary" href="#deal-report">Отчет</a>
-          <a class="btn secondary" href="#deal-chat">Чат</a>
-          <a class="btn secondary" href="#deal-ai">AI</a>
+      <section class="page deal-os workflow-screen">
+        <nav class="workflow-nav" aria-label="Навигация сделки">
+          <a class="btn ghost" href="#/deals">Назад</a>
+          <span class="role-chip">${escapeHtml(roleLabel)}</span>
+          <a class="btn ghost" href="#/ai-manager/${deal.campaign.id}">AI Plan</a>
         </nav>
 
-        <section class="grid cols-4">
-          <article class="card pad"><span class="metric-label">Участники</span><strong class="metric-value">${escapeHtml(deal.blogger.name)}</strong></article>
-          <article class="card pad"><span class="metric-label">Кампания</span><strong class="metric-value">${escapeHtml(deal.campaign.brand)}</strong></article>
-          <article class="card pad"><span class="metric-label">Escrow frozen</span><strong class="metric-value">${money(escrow.frozen)}</strong></article>
-          <article class="card pad"><span class="metric-label">Отчет</span>${statusBadge(report.reviewStatus)}</article>
-        </section>
-
-        <section class="card pad">
-          <div class="section-title">
-            <h2>Premium timeline</h2>
-            <span class="status blue">${currentStageIndex + 1} / ${timeline.length}</span>
+        <section class="workflow-hero workflow-card tone-${tone}">
+          <div class="workflow-hero-main">
+            <span class="workflow-kicker">Deal OS</span>
+            <h1>${safe(deal.campaign.title)}</h1>
+            <p>${safe(deal.blogger.name)} · ${safe(deal.deliverable)}</p>
+            <div class="workflow-badges">
+              ${statusBadge(deal.status)}
+              <span class="status ${tone}">${escapeHtml(step.owner)}</span>
+            </div>
           </div>
-          <div class="premium-timeline">
-            ${timeline.map((step, index) => timelineStep(step, index, currentStageIndex)).join("")}
+          <div class="workflow-hero-facts">
+            <div><span>Дедлайн</span><strong>${safe(deal.due || deal.campaign.deadline)}</strong></div>
+            <div><span>Стоимость</span><strong>${money(deal.amount)}</strong></div>
+            <div><span>Оплата</span><strong>${safe(escrow.paymentStatus)}</strong></div>
           </div>
         </section>
 
-        <section class="grid cols-2">
-          <article class="card pad" id="deal-escrow">
-            <div class="section-title">
-              <h2>Escrow</h2>
-              ${statusBadge(escrow.paymentStatus)}
-            </div>
-            <div class="grid cols-2 escrow-grid">
-              ${briefCard("Сумма сделки", money(escrow.amount))}
-              ${briefCard("Комиссия сервиса", money(escrow.serviceFee))}
-              ${briefCard("Заморожено", money(escrow.frozen))}
-              ${briefCard("Доступно к выплате", money(escrow.availablePayout))}
-            </div>
-            <div class="button-row">
-              <button class="btn" type="button" data-escrow-action="pay" ${permissionService.disabledAttr(canPay)}>Оплатить</button>
-              <button class="btn secondary" type="button" data-escrow-action="confirm" ${permissionService.disabledAttr(canManageEscrow)}>Подтвердить выполнение</button>
-              <button class="btn secondary" type="button" data-escrow-action="revisions" ${permissionService.disabledAttr(canRequestChanges)}>Запросить правки</button>
-              <button class="btn secondary" type="button" data-escrow-action="release" ${permissionService.disabledAttr(canManageEscrow)}>Выплатить блогеру</button>
-              ${permissionService.isBlogger() ? `<button class="btn secondary" type="button" id="withdraw-request" ${permissionService.disabledAttr(canWithdraw)}>Запросить выплату</button>` : ""}
-            </div>
-          </article>
+        ${workflowTimeline(currentStageIndex)}
 
-          <article class="card pad">
-            <h2>Участники и кампания</h2>
-            <div class="stack-list">
-              <a class="compact-card" href="#/campaigns/${deal.campaign.id}"><span><strong>${escapeHtml(deal.campaign.title)}</strong><small>${escapeHtml(deal.campaign.brand)} · ${money(deal.campaign.budget)}</small></span>${statusBadge(deal.campaign.status)}</a>
-              <a class="compact-card" href="#/bloggers/${deal.blogger.id}"><span><strong>${escapeHtml(deal.blogger.name)}</strong><small>${escapeHtml(deal.blogger.category)} · ${escapeHtml(deal.blogger.engagement)} · ${escapeHtml(deal.blogger.cpm)}</small></span>${statusBadge(deal.blogger.status)}</a>
-            </div>
-          </article>
+        <section class="workflow-current workflow-card">
+          <div class="workflow-current-copy">
+            <span class="workflow-kicker">${escapeHtml(step.status)}</span>
+            <h2>${escapeHtml(step.title)}</h2>
+            <p>${escapeHtml(step.text)}</p>
+          </div>
+          <div class="workflow-countdown">
+            <span>${escapeHtml(timer.label)}</span>
+            <strong>${escapeHtml(timer.value)}</strong>
+          </div>
+          <button class="btn workflow-primary-action" type="button" data-primary-action="${escapeHtml(step.actionType)}">${escapeHtml(step.action)}</button>
         </section>
 
-        <section class="grid cols-2" id="deal-brief">
-          <article class="card pad">
-            <div class="section-title">
-              <h2>ТЗ</h2>
-              <a class="btn secondary" href="#/campaigns/${deal.campaign.id}">Улучшить ТЗ</a>
+        <section class="workflow-feed workflow-card" id="workflow-activity">
+          <div class="workflow-section-head">
+            <div>
+              <span class="workflow-kicker">Лента</span>
+              <h2>Активность сделки</h2>
             </div>
-            <div class="stack-list">
-              ${briefCard("Цель", brief?.task || deal.campaign.goal)}
-              ${briefCard("Ключевой смысл", brief?.meaning)}
-              ${briefCard("Сценарий", brief?.scenario)}
-              ${briefCard("CTA", brief?.cta)}
-              ${briefCard("KPI", brief?.kpi)}
-              ${briefCard("Ограничения", brief?.restrictions)}
-              ${briefCard("Формат отчета", brief?.report)}
-            </div>
-          </article>
+            <a href="#/chat/${deal.chatId}">Полный чат</a>
+          </div>
+          <div class="workflow-feed-list">
+            ${feed.map((entry) => (entry.type === "message" ? feedMessage(entry.item) : feedStatus(entry.item))).join("")}
+          </div>
+          <form class="workflow-message-form" id="deal-message-form">
+            <input name="message" placeholder="Написать в сделку" required />
+            <button class="btn secondary" type="submit" ${permissionService.disabledAttr(canReplyChat)}>Отправить</button>
+          </form>
+        </section>
 
-          <article class="card pad">
-            <h2>Материалы</h2>
-            <div class="stack-list">
-              ${materials.map(materialCard).join("")}
+        <section class="workflow-card" id="workflow-materials">
+          <div class="workflow-section-head">
+            <div>
+              <span class="workflow-kicker">Материалы</span>
+              <h2>Все файлы и ссылки</h2>
             </div>
+            ${statusBadge(report.reviewStatus)}
+          </div>
+          <div class="workflow-material-grid">
+            ${materialItem({ title: "Техническое задание", type: "file", url: `#/campaigns/${deal.campaign.id}`, comment: brief?.task || deal.campaign.goal })}
+            ${materials.map(materialItem).join("")}
+            ${documents.map(documentItem).join("")}
+          </div>
+          <details class="workflow-details">
+            <summary>Добавить материал</summary>
             <form class="form material-form" id="material-form">
-              <div class="grid cols-2">
-                <div class="field"><label>Название</label><input name="title" placeholder="Ссылка или файл" required /></div>
-                <div class="field"><label>URL / файл demo</label><input name="url" placeholder="https://..." required /></div>
-              </div>
+              <div class="field"><label>Название</label><input name="title" placeholder="Креатив, ссылка или файл" required /></div>
+              <div class="field"><label>URL / файл demo</label><input name="url" placeholder="https://..." required /></div>
               <div class="field"><label>Комментарий</label><input name="comment" placeholder="Что важно учесть" /></div>
-              <button class="btn secondary" type="submit" ${permissionService.disabledAttr(canUploadMaterials)}>Добавить материал</button>
+              <button class="btn secondary" type="submit" ${permissionService.disabledAttr(canUploadMaterials)}>Сохранить материал</button>
             </form>
-          </article>
+          </details>
         </section>
 
-        <section class="grid cols-2">
-          <article class="card pad" id="deal-report">
-            <div class="section-title">
-              <h2>Отчет блогера</h2>
-              ${statusBadge(report.reviewStatus)}
+        <section class="workflow-card">
+          <div class="workflow-section-head">
+            <div>
+              <span class="workflow-kicker">ТЗ</span>
+              <h2>Коротко по заданию</h2>
             </div>
-            <form class="form" id="deal-report-form">
-              <div class="field"><label>Ссылка на публикацию</label><input name="publicationUrl" value="${escapeHtml(report.publicationUrl)}" placeholder="https://..." /></div>
-              <div class="grid cols-2">
-                <div class="field"><label>Охват</label><input name="reach" value="${escapeHtml(report.reach)}" placeholder="420 000" /></div>
-                <div class="field"><label>Просмотры</label><input name="views" value="${escapeHtml(report.views)}" placeholder="610 000" /></div>
-                <div class="field"><label>Клики</label><input name="clicks" value="${escapeHtml(report.clicks)}" placeholder="12 400" /></div>
-                <div class="field"><label>ER</label><input name="er" value="${escapeHtml(report.er)}" placeholder="5,8%" /></div>
-              </div>
-              <div class="field"><label>Комментарий блогера</label><textarea name="comment">${escapeHtml(report.comment)}</textarea></div>
-              <div class="button-row">
-                <button class="btn" type="submit" ${permissionService.disabledAttr(canUploadReport)}>Отправить отчет</button>
-                <button class="btn secondary" type="button" data-report-action="approve" ${permissionService.disabledAttr(canApprove)}>Подтвердить</button>
-                <button class="btn secondary" type="button" data-report-action="revisions" ${permissionService.disabledAttr(canRequestChanges)}>Запросить правки</button>
-              </div>
-            </form>
-          </article>
-
-          <article class="card pad">
-            <h2>Документы</h2>
-            <div class="stack-list">
-              ${documents.map(documentCard).join("")}
-            </div>
-          </article>
+            <a href="#/campaigns/${deal.campaign.id}">Кампания</a>
+          </div>
+          <div class="workflow-brief-grid">
+            ${briefLine("Цель", brief?.task || deal.campaign.goal)}
+            ${briefLine("Сценарий", brief?.scenario)}
+            ${briefLine("CTA", brief?.cta)}
+            ${briefLine("KPI", brief?.kpi)}
+            ${briefLine("Ограничения", brief?.restrictions)}
+            ${briefLine("Формат отчета", brief?.report)}
+          </div>
         </section>
 
-        <section class="grid cols-2">
-          <article class="card pad" id="deal-chat">
-            <div class="section-title">
-              <h2>Чат сделки</h2>
-              <a href="#/chat/${deal.chatId}">Открыть полный чат</a>
+        <section class="workflow-card" id="workflow-report">
+          <div class="workflow-section-head">
+            <div>
+              <span class="workflow-kicker">Отчет</span>
+              <h2>Публикация и метрики</h2>
             </div>
-            <div class="deal-chat-preview">
-              ${messages.length ? messages.map(messageCard).join("") : emptyState("Сообщений пока нет.")}
+            ${statusBadge(report.reviewStatus)}
+          </div>
+          <form class="form workflow-report-form" id="deal-report-form">
+            <div class="field"><label>Ссылка на публикацию</label><input name="publicationUrl" value="${safe(report.publicationUrl, "")}" placeholder="https://..." /></div>
+            <div class="workflow-report-grid">
+              <div class="field"><label>Охват</label><input name="reach" value="${safe(report.reach, "")}" placeholder="420 000" /></div>
+              <div class="field"><label>Просмотры</label><input name="views" value="${safe(report.views, "")}" placeholder="610 000" /></div>
+              <div class="field"><label>Клики</label><input name="clicks" value="${safe(report.clicks, "")}" placeholder="12 400" /></div>
+              <div class="field"><label>ER</label><input name="er" value="${safe(report.er, "")}" placeholder="5,8%" /></div>
             </div>
-            <form class="chat-compose" id="deal-message-form">
-              <input name="message" placeholder="Быстрое сообщение в чат сделки" required />
-              <button class="btn" type="submit" ${permissionService.disabledAttr(canReplyChat)}>Отправить</button>
-            </form>
-          </article>
-
-          <article class="card pad" id="deal-ai">
-            <div class="section-title">
-              <h2>AI Deal Assistant</h2>
-              ${statusBadge("Live")}
-            </div>
-            <div class="stack-list">
-              ${briefCard("Сейчас важно", suggestions.important)}
-              ${briefCard("Следующий лучший шаг", suggestions.nextBestStep)}
-              ${suggestionCard("Риски", suggestions.risks)}
-              ${suggestionCard("Дедлайны", suggestions.deadlines)}
-              ${suggestionCard("Подсказки для сообщения", suggestions.messageHints)}
-              ${suggestionCard("Проверка отчета", suggestions.reportCheck)}
-            </div>
-            <div class="button-row">
-              <button class="btn" type="button" id="ai-generate-message">Сгенерировать сообщение</button>
-              <a class="btn secondary" href="#/chat/${deal.chatId}">Открыть чат</a>
-              <a class="btn secondary" href="#/campaigns/${deal.campaign.id}">Улучшить ТЗ</a>
-              <button class="btn secondary" type="button" id="ai-check-report" ${permissionService.disabledAttr(canApprove || canUploadReport)}>Проверить отчет</button>
-              <button class="btn secondary" type="button" id="ai-next-stage" ${permissionService.disabledAttr(isBuyer)}>Следующий этап</button>
-            </div>
-          </article>
-        </section>
-
-        <section class="grid cols-2">
-          <article class="card pad">
-            <h2>История действий</h2>
-            <div class="activity-log">
-              ${activity.map(activityCard).join("")}
-            </div>
-          </article>
-          <form class="card pad form" id="review-form">
-            <h2>Отзыв</h2>
-            <div class="field">
-              <label for="deal-rating">Оценка</label>
-              <select id="deal-rating" name="rating">
-                <option value="5">5 · отлично</option>
-                <option value="4">4 · хорошо</option>
-                <option value="3">3 · нормально</option>
-                <option value="2">2 · есть проблемы</option>
-                <option value="1">1 · плохо</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="deal-review">Итоговый отзыв</label>
-              <textarea id="deal-review" name="review">${escapeHtml(deal.review || "")}</textarea>
-            </div>
-            <div class="field">
-              <label for="deal-review-tags">Теги</label>
-              <input id="deal-review-tags" name="tags" value="${isBuyer ? "быстро отвечает, качественный контент, соблюдает сроки" : "четкое ТЗ, быстрая оплата, профессионально"}" />
-            </div>
-            <button class="btn secondary" type="submit" ${permissionService.disabledAttr(canReview)}>Сохранить отзыв</button>
-            <div class="stack-list">
-              ${dealReviews.map((review) => `<div class="compact-card"><span><strong>${escapeHtml(review.fromRole)} · ${review.rating}/5</strong><small>${escapeHtml(review.comment)} · ${(review.tags || []).map(escapeHtml).join(", ")}</small></span></div>`).join("")}
+            <div class="field"><label>Комментарий блогера</label><textarea name="comment">${safe(report.comment, "")}</textarea></div>
+            <div class="workflow-inline-actions">
+              <button class="btn secondary" type="submit" ${permissionService.disabledAttr(canUploadReport)}>Отправить отчет</button>
+              <button class="btn ghost" type="button" data-report-action="approve" ${permissionService.disabledAttr(canApprove)}>Утвердить</button>
+              <button class="btn ghost" type="button" data-report-action="revisions" ${permissionService.disabledAttr(canRequestChanges)}>Правки</button>
             </div>
           </form>
         </section>
+
+        <section class="workflow-card">
+          <div class="workflow-section-head">
+            <div>
+              <span class="workflow-kicker">Участники</span>
+              <h2>Кто отвечает</h2>
+            </div>
+          </div>
+          <div class="workflow-participants">
+            ${participant({ label: "Закупщик", name: "Анна Морозова", meta: deal.campaign.brand, href: "#/company" })}
+            ${participant({ label: "Блогер", name: deal.blogger.name, meta: `${deal.blogger.category || "Creator"} · ${deal.blogger.engagement || ""}`, href: `#/bloggers/${deal.blogger.id}` })}
+            ${participant({ label: "AI", name: "Deal Assistant", meta: "следит за рисками и дедлайнами", href: "#/ai" })}
+          </div>
+        </section>
+
+        <section class="workflow-card workflow-ai">
+          <div class="workflow-section-head">
+            <div>
+              <span class="workflow-kicker">AI Assistant</span>
+              <h2>Одна рекомендация</h2>
+            </div>
+            <button class="btn ghost" type="button" id="ai-check-report">Обновить</button>
+          </div>
+          <p>${safe(suggestions.important)}</p>
+          <small>${safe(suggestions.nextBestStep)}</small>
+          <button class="btn secondary" type="button" id="ai-generate-message">Сгенерировать сообщение</button>
+        </section>
+
+        <section class="workflow-card workflow-finance">
+          <div class="workflow-section-head">
+            <div>
+              <span class="workflow-kicker">Оплата</span>
+              <h2>Escrow</h2>
+            </div>
+            ${statusBadge(escrow.paymentStatus)}
+          </div>
+          <div class="workflow-finance-grid">
+            <div><span>Сумма</span><strong>${money(escrow.amount)}</strong></div>
+            <div><span>Комиссия</span><strong>${money(escrow.serviceFee)}</strong></div>
+            <div><span>Заморожено</span><strong>${money(escrow.frozen)}</strong></div>
+            <div><span>К выплате</span><strong>${money(escrow.availablePayout)}</strong></div>
+          </div>
+          <div class="workflow-inline-actions">
+            <button class="btn ghost" type="button" data-escrow-action="confirm" ${permissionService.disabledAttr(canManageEscrow)}>Подтвердить</button>
+            <button class="btn ghost" type="button" data-escrow-action="revisions" ${permissionService.disabledAttr(canRequestChanges)}>Правки</button>
+            <button class="btn ghost" type="button" data-escrow-action="release" ${permissionService.disabledAttr(canManageEscrow)}>Выплатить</button>
+          </div>
+        </section>
+
+        <form class="workflow-card form" id="review-form">
+          <div class="workflow-section-head">
+            <div>
+              <span class="workflow-kicker">Отзывы</span>
+              <h2>Финальная оценка</h2>
+            </div>
+          </div>
+          <div class="field">
+            <label for="deal-rating">Оценка</label>
+            <select id="deal-rating" name="rating">
+              <option value="5">5 · отлично</option>
+              <option value="4">4 · хорошо</option>
+              <option value="3">3 · нормально</option>
+              <option value="2">2 · есть проблемы</option>
+              <option value="1">1 · плохо</option>
+            </select>
+          </div>
+          <div class="field"><label for="deal-review">Комментарий</label><textarea id="deal-review" name="review">${safe(deal.review, "")}</textarea></div>
+          <div class="field"><label for="deal-review-tags">Теги</label><input id="deal-review-tags" name="tags" value="${isBuyer ? "быстро отвечает, качественный контент, соблюдает сроки" : "четкое ТЗ, быстрая оплата, профессионально"}" /></div>
+          <button class="btn secondary" type="submit" ${permissionService.disabledAttr(canReview)}>Сохранить отзыв</button>
+          <div class="workflow-reviews">${reviewList(dealReviews)}</div>
+        </form>
       </section>
     `;
   },
 
   mount({ params, router }) {
     const reload = () => router.replace(`/deals/${params.id}`);
+    const scrollTo = (selector) => document.querySelector(selector)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-    document.querySelector("#next-stage")?.addEventListener("click", () => {
-      if (!permissionService.isBuyer()) return;
-      dealRoomService.nextStage(params.id);
-      reload();
+    document.querySelector("[data-primary-action]")?.addEventListener("click", (event) => {
+      const action = event.currentTarget.dataset.primaryAction;
+      if (action === "pay") {
+        escrowService.pay(params.id);
+        reload();
+        return;
+      }
+      if (action === "approve-report") {
+        reportService.approve(params.id);
+        reload();
+        return;
+      }
+      if (action === "withdraw") {
+        if (!permissionService.canWithdraw(dealRoomService.get(params.id)?.deal)) return;
+        dealRoomService.sendQuickMessage(params.id, "Запрашиваю выплату по завершенной сделке.");
+        reload();
+        return;
+      }
+      if (action === "next-stage") {
+        if (!permissionService.isBuyer()) return;
+        dealRoomService.nextStage(params.id);
+        reload();
+        return;
+      }
+      if (action === "materials") scrollTo("#workflow-materials");
+      if (action === "report") scrollTo("#workflow-report");
+      if (action === "review") scrollTo("#review-form");
+      if (action === "activity") scrollTo("#workflow-activity");
     });
 
     document.querySelectorAll("[data-escrow-action]").forEach((button) => {
       button.addEventListener("click", () => {
         const action = button.dataset.escrowAction;
         if (button.disabled) return;
-        if (action === "pay") escrowService.pay(params.id);
         if (action === "confirm") escrowService.confirm(params.id);
         if (action === "revisions") escrowService.requestRevisions(params.id);
         if (action === "release") escrowService.release(params.id);
@@ -419,16 +569,6 @@ export const dealDetailView = {
 
     document.querySelector("#ai-check-report")?.addEventListener("click", () => {
       dealRoomService.refreshAi(params.id);
-      reload();
-    });
-
-    document.querySelector("#ai-next-stage")?.addEventListener("click", () => {
-      dealRoomService.nextStage(params.id);
-      reload();
-    });
-    document.querySelector("#withdraw-request")?.addEventListener("click", () => {
-      if (!permissionService.canWithdraw(dealRoomService.get(params.id)?.deal)) return;
-      dealRoomService.sendQuickMessage(params.id, "Запрашиваю выплату по завершенной сделке.");
       reload();
     });
   },
