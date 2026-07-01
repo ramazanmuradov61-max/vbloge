@@ -1,5 +1,11 @@
 # vbloge SPA
 
+## Product Blueprint 2026
+
+Product strategy document: [docs/VBLOGE_BLUEPRINT_2026.md](docs/VBLOGE_BLUEPRINT_2026.md).
+
+The blueprint describes vbloge as a mobile operating system for influencer marketing: CRM, marketplace, AI campaign manager, Deal OS, chat, calendar, payments, analytics, and documents in one product.
+
 ## VBloge 5.0 - Smart Workflow & Automation
 
 Этап 5.0 переводит продукт из набора экранов в систему управления рекламными интеграциями. Архитектура, Router, Store и существующая бизнес-логика не менялись: новые сценарии работают поверх текущих данных.
