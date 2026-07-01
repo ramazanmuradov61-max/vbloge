@@ -183,6 +183,31 @@ export const table = ({ headers, rows }) => `
 
 export const emptyState = (text) => `<div class="empty">${escapeHtml(text)}</div>`;
 
+export const smartEmptyState = ({ title, text = "", action = null }) => `
+  <div class="smart-state empty">
+    <span class="state-icon" aria-hidden="true">□</span>
+    <strong>${escapeHtml(title)}</strong>
+    ${text ? `<small>${escapeHtml(text)}</small>` : ""}
+    ${action?.href ? `<a class="btn secondary compact" href="${escapeHtml(action.href)}">${escapeHtml(action.label || "Открыть")}</a>` : ""}
+  </div>
+`;
+
+export const smartErrorState = ({ title = "Не удалось выполнить действие", text = "", action = null }) => `
+  <div class="smart-state error-state">
+    <span class="state-icon" aria-hidden="true">!</span>
+    <strong>${escapeHtml(title)}</strong>
+    ${text ? `<small>${escapeHtml(text)}</small>` : ""}
+    ${action?.href ? `<a class="btn secondary compact" href="${escapeHtml(action.href)}">${escapeHtml(action.label || "Повторить")}</a>` : ""}
+  </div>
+`;
+
+export const smartLoadingState = ({ title = "Загрузка", lines = 3 } = {}) => `
+  <div class="smart-state loading-state" role="status">
+    ${skeletonState(lines)}
+    <strong>${escapeHtml(title)}</strong>
+  </div>
+`;
+
 export const loadingState = (text = "Загрузка данных") => `
   <div class="state-card loading-state" role="status">
     <span class="spinner" aria-hidden="true"></span>

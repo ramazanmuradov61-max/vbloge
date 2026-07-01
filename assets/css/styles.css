@@ -4932,3 +4932,187 @@ button.workflow-material {
     font-size: 22px;
   }
 }
+
+/* VBloge 5.0 Smart Workflow & Automation */
+.action-center-grid {
+  display: grid;
+  gap: var(--ds-space-2);
+}
+
+.action-center-card {
+  position: relative;
+  display: grid;
+  gap: var(--ds-space-1);
+  min-width: 0;
+  padding: var(--ds-space-3);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: #fff;
+  color: inherit;
+  box-shadow: var(--ds-shadow-sm);
+  transition:
+    transform var(--ds-motion-fast),
+    box-shadow var(--ds-motion-fast),
+    border-color var(--ds-motion-fast),
+    background var(--ds-motion-fast);
+}
+
+.action-center-card:hover,
+.action-center-card:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(238, 98, 95, 0.26);
+  box-shadow: var(--ds-shadow-md);
+}
+
+.action-center-card span {
+  color: var(--ds-primary);
+  font-size: var(--ds-caption);
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.action-center-card strong {
+  overflow-wrap: anywhere;
+  font-size: var(--ds-secondary);
+  line-height: 1.25;
+}
+
+.action-center-card small {
+  color: var(--ds-muted);
+  font-size: var(--ds-caption);
+  line-height: 1.38;
+}
+
+.action-center-card em {
+  justify-self: start;
+  margin-top: var(--ds-space-1);
+  color: var(--ds-text);
+  font-size: var(--ds-caption);
+  font-style: normal;
+  font-weight: 850;
+}
+
+.action-center-card.critical {
+  border-color: rgba(229, 72, 77, 0.22);
+  background: linear-gradient(180deg, rgba(229, 72, 77, 0.07), rgba(255, 255, 255, 0) 72%), #fff;
+}
+
+.action-center-card.important {
+  border-color: rgba(246, 166, 35, 0.24);
+  background: linear-gradient(180deg, rgba(246, 166, 35, 0.09), rgba(255, 255, 255, 0) 72%), #fff;
+}
+
+.action-center-card.info {
+  border-color: rgba(59, 130, 246, 0.2);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.06), rgba(255, 255, 255, 0) 72%), #fff;
+}
+
+.action-center-card.success {
+  border-color: rgba(45, 190, 96, 0.22);
+  background: linear-gradient(180deg, rgba(45, 190, 96, 0.07), rgba(255, 255, 255, 0) 72%), #fff;
+}
+
+.smart-action-center .action-center-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.smart-action-center-page {
+  max-width: 920px;
+}
+
+.action-center-group {
+  animation: workflowFadeUp var(--ds-motion-base) both;
+}
+
+.smart-state {
+  display: grid;
+  justify-items: start;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-4);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: #fff;
+}
+
+.smart-state small {
+  color: var(--ds-muted);
+  font-size: var(--ds-caption);
+}
+
+.state-card.loading-state .spinner {
+  display: none;
+}
+
+.state-card.loading-state::before {
+  content: "";
+  width: 100%;
+  height: 44px;
+  border-radius: var(--ds-radius-md);
+  background: linear-gradient(90deg, #eef1f6, #f8fafc, #eef1f6);
+  background-size: 220% 100%;
+  animation: skeletonPulse 1.2s cubic-bezier(0.2, 0, 0, 1) infinite;
+}
+
+.btn,
+.mobile-action,
+.campaign-card,
+.workflow-card,
+.mobile-list-card,
+.smart-hero,
+.chip,
+.badge,
+.status,
+.mobile-tab {
+  transition:
+    transform var(--ds-motion-fast),
+    box-shadow var(--ds-motion-fast),
+    background var(--ds-motion-fast),
+    border-color var(--ds-motion-fast),
+    color var(--ds-motion-fast);
+}
+
+.btn:active,
+.mobile-action:active,
+.campaign-card:active,
+.workflow-card:active,
+.mobile-list-card:active,
+.mobile-tab:active {
+  transform: scale(0.985);
+}
+
+.role-toast.success {
+  border-color: rgba(45, 190, 96, 0.25);
+  background: rgba(45, 190, 96, 0.95);
+  color: #fff;
+}
+
+@keyframes workflowFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes skeletonPulse {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -220% 0;
+  }
+}
+
+@media (max-width: 840px) {
+  .smart-action-center .action-center-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-center-card {
+    padding: var(--ds-space-3);
+  }
+}

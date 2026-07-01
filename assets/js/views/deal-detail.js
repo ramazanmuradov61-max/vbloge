@@ -4,6 +4,7 @@ import { escrowService } from "../services/escrowService.js";
 import { permissionService } from "../services/permissionService.js";
 import { reportService } from "../services/reportService.js";
 import { reviewService } from "../services/reviewService.js";
+import { workflowEngine } from "../services/workflowEngine.js";
 import { emptyState, escapeHtml, money, statusBadge } from "../components/ui.js";
 
 const workflowStages = [
@@ -30,20 +31,15 @@ const countdown = (deal) => {
   return { label, value };
 };
 
-const currentWorkflowIndex = (currentStageIndex) => {
-  const index = workflowStages.findIndex((stage) => stage.match.includes(currentStageIndex));
-  return Math.max(0, index);
-};
-
-const workflowTimeline = (currentStageIndex) => {
-  const current = currentWorkflowIndex(currentStageIndex);
+const workflowTimeline = (items) => {
+  const stages = items?.length ? items : workflowStages.map((stage, index) => ({ ...stage, state: index === 0 ? "current" : "upcoming" }));
   return `
     <section class="workflow-timeline" aria-label="Прогресс сделки">
-      ${workflowStages
+      ${stages
         .map(
           (stage, index) => `
-            <div class="workflow-stage ${index < current ? "completed" : ""} ${index === current ? "current" : ""} ${index > current ? "upcoming" : ""}">
-              <span aria-hidden="true">${index < current ? "✓" : index + 1}</span>
+            <div class="workflow-stage ${escapeHtml(stage.state)}">
+              <span aria-hidden="true">${stage.state === "completed" ? "✓" : index + 1}</span>
               <strong>${escapeHtml(stage.title)}</strong>
             </div>
           `,
@@ -245,6 +241,7 @@ export const dealDetailView = {
     const canReplyChat = permissionService.canReplyChat(deal);
     const canWithdraw = permissionService.canWithdraw(deal);
     const step = primaryStep({ deal, report, isBuyer, canPay, canApprove, canUploadMaterials, canUploadReport, canReview, canWithdraw });
+    const workflow = workflowEngine.deal(deal);
     const timer = countdown(deal);
     const tone = statusTone(deal, report, escrow);
     const dealReviews = reviewService.listForDeal(deal.id);
@@ -279,7 +276,7 @@ export const dealDetailView = {
           </div>
         </section>
 
-        ${workflowTimeline(currentStageIndex)}
+        ${workflowTimeline(workflow?.timeline)}
 
         <section class="workflow-current workflow-card">
           <div class="workflow-current-copy">

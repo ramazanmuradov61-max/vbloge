@@ -1,3 +1,5 @@
+import { actionCenterService } from "../services/actionCenterService.js";
+import { automationService } from "../services/automationService.js";
 import { notificationService } from "../services/notificationService.js";
 import { deadlineService } from "../services/deadlineService.js";
 import { calendarEvents } from "../data.js";
@@ -15,15 +17,15 @@ const showRoleToast = (label) => {
   const current = document.querySelector(".role-toast");
   current?.remove();
   const toast = document.createElement("div");
-  toast.className = "role-toast";
-  toast.textContent = `Роль: ${label}`;
+  toast.className = "role-toast success";
+  toast.textContent = `✓ Роль: ${label}`;
   document.body.append(toast);
-  window.setTimeout(() => toast.remove(), 1400);
+  window.setTimeout(() => toast.remove(), 1500);
 };
 
 const actionCard = ({ href, icon, title, text }) => `
   <a class="mobile-action" href="${href}">
-    <span aria-hidden="true">${icon}</span>
+    <span aria-hidden="true">${escapeHtml(icon)}</span>
     <strong>${escapeHtml(title)}</strong>
     <small>${escapeHtml(text)}</small>
   </a>
@@ -38,6 +40,15 @@ const smartHero = ({ kicker, title, text, href, action }) => `
     </div>
     <a class="btn" href="${href}">${escapeHtml(action)}</a>
   </section>
+`;
+
+const actionCenterItem = (item) => `
+  <a class="action-center-card ${escapeHtml(item.tone)}" href="${escapeHtml(item.href)}">
+    <span>${escapeHtml(item.source)}</span>
+    <strong>${escapeHtml(item.title)}</strong>
+    <small>${escapeHtml(item.text)}</small>
+    <em>${escapeHtml(item.action)}</em>
+  </a>
 `;
 
 const miniDeal = (deal) => `
@@ -98,67 +109,25 @@ export const homeView = {
     const deadlines = deadlineService.list({ limit: 1 });
     const nextDeadline = deadlines[0] || { date: "6 июл", campaign: "Nike Air Max", action: "Проверить отчет", href: "#/deals/deal-nike-mila" };
     const recentThreads = state.chatThreads.slice(0, 2);
-    const hero = isBlogger
-      ? pendingInvitations > 0
-        ? {
-            kicker: "Главное сейчас",
-            title: "У вас новое приглашение.",
-            text: "Посмотрите условия кампании и примите решение.",
-            href: "#/invitations",
-            action: "Посмотреть",
-          }
-        : visibleDeals[0]
-          ? {
-              kicker: "Следующий шаг",
-              title: "Сегодня нужно обновить сделку.",
-              text: `${visibleDeals[0].campaign?.title || visibleDeals[0].number}: проверьте этап и чат.`,
-              href: `#/deals/${visibleDeals[0].id}`,
-              action: "Открыть сделку",
-            }
-          : {
-              kicker: "AI рекомендует",
-              title: "Подберите кампанию под профиль.",
-              text: "Откройте каталог и сохраните подходящие предложения.",
-              href: "#/campaigns",
-              action: "Открыть",
-            }
-      : unread > 0
-        ? {
-            kicker: "Главное сейчас",
-            title: `Получено ${unread} новых откликов.`,
-            text: "Откройте активность и закройте срочные ответы.",
-            href: "#/notifications",
-            action: "Открыть",
-          }
-        : nextDeadline
-          ? {
-              kicker: "Дедлайн",
-              title: `До дедлайна ${nextDeadline.campaign || "кампании"} осталось немного.`,
-              text: nextDeadline.action || "Проверьте сделку и отчет.",
-              href: nextDeadline.href || "#/calendar",
-              action: "Продолжить",
-            }
-          : {
-              kicker: "AI рекомендует",
-              title: "Сегодня нет срочных задач.",
-              text: "Можно подобрать новых блогеров для активных кампаний.",
-              href: "#/bloggers",
-              action: "Подобрать",
-            };
-
-    const actions = isBlogger
-      ? [
-          { href: "#/campaigns", icon: "▣", title: "Смотреть кампании", text: "доступные РК" },
-          { href: "#/invitations", icon: "◇", title: "Приглашения", text: `${pendingInvitations} новых` },
-          { href: "#/chat", icon: "✉", title: "Открыть чаты", text: "ответить брендам" },
-          { href: "#/calendar", icon: "□", title: "Календарь", text: "публикации" },
-        ]
-      : [
-          { href: "#/campaigns", icon: "+", title: "Создать кампанию", text: "бриф и бюджет" },
-          { href: "#/bloggers", icon: "◉", title: "Найти блогера", text: "каталог и AI Score" },
-          { href: "#/deals", icon: "✓", title: "Проверить сделки", text: "этапы и отчеты" },
-          { href: "#/chat", icon: "✉", title: "Открыть чаты", text: "переписки" },
-        ];
+    const heroItem = actionCenterService.hero({ role: state.currentRole });
+    const automation = automationService.top({ role: state.currentRole });
+    const actionItems = actionCenterService.list({ role: state.currentRole, limit: 4 });
+    const hero = heroItem
+      ? {
+          kicker: heroItem.source,
+          title: heroItem.title,
+          text: heroItem.text,
+          href: heroItem.href,
+          action: heroItem.action,
+        }
+      : {
+          kicker: "AI рекомендует",
+          title: automation?.title || "Сегодня нет срочных задач.",
+          text: automation?.text || "Можно спокойно продолжать работу по активным интеграциям.",
+          href: automation?.href || "#/ai",
+          action: automation?.action || "Открыть AI",
+        };
+    const actions = actionCenterService.quickActions({ role: state.currentRole });
 
     return `
       <section class="page mobile-home">
@@ -166,7 +135,7 @@ export const homeView = {
           <div>
             <p class="eyebrow">vbloge OS</p>
             <h1>${isBlogger ? "Здравствуйте, Mila" : "Здравствуйте, Анна"}</h1>
-            <p class="lead">${isBlogger ? "Сегодня: приглашения, публикации и выплаты." : "Сегодня: кампании, ответы блогеров и дедлайны."}</p>
+            <p class="lead">${isBlogger ? "Система ведет приглашения, публикации, выплаты и отзывы." : "Система ведет кампании, сделки, дедлайны и следующие действия."}</p>
           </div>
           ${roleSwitcher(state.currentRole)}
         </header>
@@ -196,6 +165,16 @@ export const homeView = {
           ${actions.map(actionCard).join("")}
         </section>
 
+        <section class="mobile-section smart-action-center">
+          <div class="section-title">
+            <h2>Action Center</h2>
+            <a href="#/notifications">Все задачи</a>
+          </div>
+          <div class="action-center-grid">
+            ${actionItems.map(actionCenterItem).join("")}
+          </div>
+        </section>
+
         <section class="mobile-section">
           <div class="section-title">
             <h2>${isBlogger ? "Мои сделки" : "Мои кампании"}</h2>
@@ -221,7 +200,6 @@ export const homeView = {
           </div>
           <div class="stack-list">${recentThreads.map(miniMessage).join("")}</div>
         </section>
-
       </section>
     `;
   },
