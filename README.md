@@ -6,6 +6,20 @@ Product strategy document: [docs/VBLOGE_BLUEPRINT_2026.md](docs/VBLOGE_BLUEPRINT
 
 The blueprint describes vbloge as a mobile operating system for influencer marketing: CRM, marketplace, AI campaign manager, Deal OS, chat, calendar, payments, analytics, and documents in one product.
 
+## Buyer Journey 2026
+
+VBloge 6.1 focuses on the buyer path without changing Store, Router, Service Layer, or existing business logic.
+
+What changed:
+
+- Buyer dashboard now works as a daily workspace: Smart Hero, Action Center, active campaigns, deadlines, latest messages, and upcoming payouts.
+- Campaign creation became a 5-step wizard: product idea, desired result, budget/materials, AI campaign preview, and confirmation.
+- AI campaign preview shows title, brief, formats, KPI, risks, budget logic, and recommended bloggers before creation.
+- Blogger catalog is optimized for buyer selection: AI Match, price, ER, reach, similar campaigns, reason for recommendation, and a clear Invite CTA.
+- Invitation flow now confirms the action in place and suggests the next step: invite three more bloggers.
+- Campaign cards show workflow status and progress so the buyer understands where each campaign is in the path.
+- Analytics includes a short AI Summary with practical recommendations for the next campaign.
+
 ## VBloge 5.0 - Smart Workflow & Automation
 
 Этап 5.0 переводит продукт из набора экранов в систему управления рекламными интеграциями. Архитектура, Router, Store и существующая бизнес-логика не менялись: новые сценарии работают поверх текущих данных.

@@ -1,50 +1,108 @@
+import { scoreService } from "../services/scoreService.js";
 import { getState, isFavorite, toggleFavorite } from "../store.js";
-import { avatar, escapeHtml, pageHeader, statusBadge } from "../components/ui.js";
+import { avatar, escapeHtml, money, pageHeader, smartEmptyState, statusBadge } from "../components/ui.js";
+
+const parseMoney = (value) => Number(String(value || "0").replace(/[^\d]/g, "")) || 0;
+const parseReach = (value) => String(value || "0").replace("тыс.", "k").replace("млн", "m");
+
+const activeCampaign = () => {
+  const { campaigns } = getState();
+  return campaigns.find((campaign) => !/заверш/i.test(campaign.status || "")) || campaigns[0];
+};
+
+const matchFor = (blogger, campaign) => {
+  const score = scoreService.getBloggerScore(blogger).score;
+  const categoryBonus = campaign?.category && blogger.category === campaign.category ? 8 : 3;
+  const channelBonus = (blogger.channels || []).some((channel) => String(campaign?.platform || "").toLowerCase().includes(channel.toLowerCase())) ? 7 : 2;
+  return Math.min(99, Math.round(score * 0.82 + categoryBonus + channelBonus));
+};
+
+const similarCampaigns = (blogger) => {
+  const { campaigns } = getState();
+  const items = campaigns.filter((campaign) => campaign.category === blogger.category || (campaign.bloggerIds || []).includes(blogger.id)).slice(0, 2);
+  return items.length ? items.map((campaign) => campaign.title).join(", ") : "Запуски в похожей категории";
+};
+
+const recommendationReason = (blogger, campaign) => {
+  const platform = blogger.channels?.[0] || campaign?.platform || "соцсети";
+  return `${blogger.category} и ${platform} совпадают с задачей кампании. Аудитория подходит для быстрого теста гипотезы.`;
+};
 
 export const bloggersView = {
   title: "Каталог блогеров",
   render() {
-    const { bloggers } = getState();
+    const { bloggers, currentRole } = getState();
+    const campaign = activeCampaign();
+    const isBuyer = currentRole !== "blogger";
     return `
-      <section class="page">
+      <section class="page buyer-blogger-picker">
         ${pageHeader({
-          eyebrow: "Каталог",
-          title: "Блогеры",
-          lead: "Карточки авторов связаны с кампаниями, сделками, чатами и избранным.",
+          eyebrow: isBuyer ? "AI подбор" : "Каталог",
+          title: isBuyer ? "Кого пригласить" : "Блогеры",
+          lead: isBuyer ? `Рекомендации под кампанию: ${escapeHtml(campaign?.title || "активная кампания")}.` : "Карточки авторов связаны с кампаниями, сделками, чатами и избранным.",
           actions: `<a class="btn secondary" href="#/favorites"><span class="tool-icon">★</span>Избранное</a>`,
         })}
-        <div class="grid cols-2">
-          ${bloggers
-            .map(
-              (blogger) => `
-                <article class="card pad clickable-card">
-                  <div class="list-item">
-                    <a class="person" href="#/bloggers/${blogger.id}">
-                      ${avatar(blogger.name)}
-                      <div class="person-text">
-                        <strong>${escapeHtml(blogger.name)}</strong>
-                        <span class="meta">${escapeHtml(blogger.category)} · ${escapeHtml(blogger.city)}</span>
-                      </div>
-                    </a>
-                    <button class="btn secondary compact" type="button" data-save-creator="${escapeHtml(blogger.id)}">${isFavorite("bloggers", blogger.id) ? "★" : "☆"}</button>
-                  </div>
-                  <a href="#/bloggers/${blogger.id}">
-                    <p class="lead">${escapeHtml(blogger.tone)}</p>
-                    <div class="grid cols-4">
-                      <div><span class="metric-label">Аудитория</span><strong>${escapeHtml(blogger.audience)}</strong></div>
-                      <div><span class="metric-label">ER</span><strong>${escapeHtml(blogger.engagement)}</strong></div>
-                      <div><span class="metric-label">CPM</span><strong>${escapeHtml(blogger.cpm)}</strong></div>
-                      <div><span class="metric-label">Охват</span><strong>${escapeHtml(blogger.avgReach)}</strong></div>
-                    </div>
-                  </a>
-                  <div class="list-item">
-                    ${statusBadge(blogger.status)}
-                    <a class="btn ghost" href="#/bloggers/${blogger.id}">Открыть</a>
-                  </div>
-                </article>
-              `,
-            )
-            .join("")}
+
+        <section class="mobile-filter-bar buyer-search-strip">
+          <label class="mobile-inline-search">
+            <span aria-hidden="true">⌕</span>
+            <input type="search" placeholder="Найти блогера" aria-label="Найти блогера" />
+          </label>
+          <div class="search-tools">
+            <button class="search-chip active" type="button">AI Match</button>
+            <button class="search-chip" type="button">Цена</button>
+            <button class="search-chip" type="button">ER</button>
+            <button class="search-chip" type="button">Охват</button>
+          </div>
+        </section>
+
+        <div class="buyer-recommendation-grid">
+          ${
+            bloggers.length
+              ? bloggers
+                  .map((blogger) => {
+                    const score = scoreService.getBloggerScore(blogger);
+                    const match = matchFor(blogger, campaign);
+                    return `
+                      <article class="blogger-recommendation-card clickable-card">
+                        <div class="recommendation-head">
+                          <a class="person" href="#/bloggers/${blogger.id}">
+                            ${avatar(blogger.name)}
+                            <div class="person-text">
+                              <strong>${escapeHtml(blogger.name)}</strong>
+                              <span class="meta">${escapeHtml(blogger.category)} · ${escapeHtml(blogger.city)}</span>
+                            </div>
+                          </a>
+                          <button class="btn secondary compact" type="button" data-save-creator="${escapeHtml(blogger.id)}" aria-label="Избранное">${isFavorite("bloggers", blogger.id) ? "★" : "☆"}</button>
+                        </div>
+
+                        <a class="recommendation-body" href="#/bloggers/${blogger.id}">
+                          <div class="match-ring">
+                            <strong>${match}%</strong>
+                            <span>AI Match</span>
+                          </div>
+                          <div class="recommendation-metrics">
+                            <span><small>Цена</small><strong>${money(parseMoney(blogger.price))}</strong></span>
+                            <span><small>ER</small><strong>${escapeHtml(blogger.engagement)}</strong></span>
+                            <span><small>Охват</small><strong>${escapeHtml(parseReach(blogger.avgReach))}</strong></span>
+                          </div>
+                          <p>${escapeHtml(recommendationReason(blogger, campaign))}</p>
+                          <div class="similar-line">
+                            <span>Похожие кампании</span>
+                            <strong>${escapeHtml(similarCampaigns(blogger))}</strong>
+                          </div>
+                        </a>
+
+                        <div class="recommendation-footer">
+                          ${statusBadge(`AI Score ${score.score}`)}
+                          <a class="btn" href="#/bloggers/${blogger.id}">Пригласить</a>
+                        </div>
+                      </article>
+                    `;
+                  })
+                  .join("")
+              : smartEmptyState({ title: "Блогеров пока нет", text: "Запустите demo-данные или создайте кампанию, чтобы AI предложил авторов.", action: { href: "#/dev", label: "Открыть Dev Panel" } })
+          }
         </div>
       </section>
     `;

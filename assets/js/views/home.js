@@ -2,7 +2,7 @@ import { actionCenterService } from "../services/actionCenterService.js";
 import { automationService } from "../services/automationService.js";
 import { notificationService } from "../services/notificationService.js";
 import { deadlineService } from "../services/deadlineService.js";
-import { calendarEvents } from "../data.js";
+import { calendarEvents, wallet } from "../data.js";
 import { enrichDeal, getState, setRole } from "../store.js";
 import { escapeHtml, money, statusBadge } from "../components/ui.js";
 
@@ -92,6 +92,16 @@ const deadlineCard = (item) => `
   </a>
 `;
 
+const payoutCard = (transaction) => `
+  <a class="mobile-list-card payout-card" href="${transaction.dealId ? `#/deals/${transaction.dealId}` : "#/wallet"}">
+    <span>
+      <strong>${escapeHtml(transaction.title)}</strong>
+      <small>${escapeHtml(transaction.date)} · ${escapeHtml(transaction.status)}</small>
+    </span>
+    <strong>${money(Math.abs(Number(transaction.amount || 0)))}</strong>
+  </a>
+`;
+
 export const homeView = {
   title: "Главная",
   render() {
@@ -112,6 +122,7 @@ export const homeView = {
     const heroItem = actionCenterService.hero({ role: state.currentRole });
     const automation = automationService.top({ role: state.currentRole });
     const actionItems = actionCenterService.list({ role: state.currentRole, limit: 4 });
+    const payouts = wallet.transactions.filter((item) => item.amount < 0).slice(0, 2);
     const hero = heroItem
       ? {
           kicker: heroItem.source,
@@ -200,6 +211,19 @@ export const homeView = {
           </div>
           <div class="stack-list">${recentThreads.map(miniMessage).join("")}</div>
         </section>
+        ${
+          isBlogger
+            ? ""
+            : `
+              <section class="mobile-section buyer-payouts">
+                <div class="section-title">
+                  <h2>Ближайшие выплаты</h2>
+                  <a href="#/wallet">Кошелек</a>
+                </div>
+                <div class="stack-list">${payouts.map(payoutCard).join("")}</div>
+              </section>
+            `
+        }
       </section>
     `;
   },

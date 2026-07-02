@@ -49,6 +49,12 @@ export const statsView = {
           <article class="card pad"><span class="metric-label">CPA</span><strong class="metric-value">${stats.cpa}</strong></article>
           <article class="card pad"><span class="metric-label">Бюджет сделок</span><strong class="metric-value">${money(stats.totalBudget)}</strong></article>
         </section>
+        <section class="analytics-ai-summary">
+          <span>AI Summary</span>
+          <strong>Кампания успешнее 82% похожих запусков.</strong>
+          <p>Лучше всего сработали Telegram-каналы: ниже CPA и быстрее согласование. В следующем запуске AI рекомендует увеличить бюджет на 15% и оставить 20% резерва на блогеров с высоким ER.</p>
+          <a class="btn secondary" href="#/campaigns">Открыть кампании</a>
+        </section>
         <section class="grid cols-3">
           <article class="card pad"><span class="metric-label">Среднее время сделки</span><strong class="metric-value">${stats.averageDealTime} дн.</strong></article>
           <article class="card pad"><span class="metric-label">Средний бюджет</span><strong class="metric-value">${money(stats.averageBudget)}</strong></article>

@@ -146,6 +146,7 @@ export const bloggerDetailView = {
     const mode = document.querySelector("#invite-mode");
     const existing = document.querySelector(".invite-existing");
     const newBlock = document.querySelector(".invite-new");
+    const blogger = getBlogger(params.id);
 
     document.querySelector("#favorite-blogger")?.addEventListener("click", () => {
       toggleFavorite("bloggers", params.id);
@@ -167,7 +168,7 @@ export const bloggerDetailView = {
       event.preventDefault();
       if (!permissionService.canInvite()) return;
       const createNew = mode.value === "new";
-      createInvitation({
+      const invitation = createInvitation({
         bloggerId: params.id,
         campaignId: createNew ? null : form.elements.campaignId.value,
         campaignDraft: createNew
@@ -183,7 +184,25 @@ export const bloggerDetailView = {
             }
           : null,
       });
-      router.go("/invitations");
+      const campaignTitle = createNew
+        ? form.elements.title.value.trim()
+        : getCampaign(form.elements.campaignId.value)?.title || "выбранная кампания";
+      form.innerHTML = `
+        <div class="invite-success">
+          <span aria-hidden="true">✓</span>
+          <h2>Приглашение отправлено</h2>
+          <p>${escapeHtml(blogger.name)} получит приглашение по кампании «${escapeHtml(campaignTitle)}». Теперь ожидаем ответ блогера.</p>
+          <div class="buyer-next-step">
+            <small>Следующий рекомендуемый шаг</small>
+            <strong>Пригласить еще трех блогеров, чтобы быстрее получить отклики.</strong>
+          </div>
+          <div class="wizard-actions">
+            <a class="btn" href="#/bloggers">Пригласить еще</a>
+            <a class="btn secondary" href="#/invitations">Открыть приглашения</a>
+          </div>
+          <small class="meta">Invitation ${escapeHtml(invitation?.id || "")} сохранен в Store со статусом Pending.</small>
+        </div>
+      `;
     });
   },
 };
