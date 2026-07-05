@@ -104,7 +104,7 @@ export const renderPublicLayout = (content) => `
       <div>
         <p class="eyebrow">Influencer marketing workspace</p>
         <h1>Одна среда для кампаний, авторов и сделок</h1>
-        <p class="lead">Демо-режим показывает полный путь: РК, приглашение, сделка, чат, отчет и завершение.</p>
+        <p class="lead">Один понятный путь: кампания, приглашение, сделка, чат, отчет и завершение.</p>
       </div>
     </section>
     <section class="auth-panel">${content}</section>

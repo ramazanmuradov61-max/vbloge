@@ -86,7 +86,7 @@ export const profileView = {
                     <div class="list-item"><span>Текущая роль</span><strong>Закупщик</strong></div>
                     <div class="list-item"><span>Финансы</span><strong>${escapeHtml(company.company.financeStatus)}</strong></div>
                     <div class="list-item"><span>Команда</span><strong>${company.members.length}</strong></div>
-                    <div class="list-item"><span>AI</span><strong>Store + сервисы</strong></div>
+                    <div class="list-item"><span>AI</span><strong>Подсказки включены</strong></div>
                   `
               }
             </div>
@@ -98,7 +98,7 @@ export const profileView = {
               <section class="card pad">
                 <h2>Портфолио</h2>
                 <div class="grid cols-3 portfolio-grid">
-                  ${blogger.portfolio.map((item) => `<div class="portfolio-tile"><strong>${escapeHtml(item)}</strong><span>демо-кейс</span></div>`).join("")}
+                  ${blogger.portfolio.map((item) => `<div class="portfolio-tile"><strong>${escapeHtml(item)}</strong><span>кейс</span></div>`).join("")}
                 </div>
               </section>
               <section class="grid cols-2">

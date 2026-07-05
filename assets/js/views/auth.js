@@ -4,7 +4,7 @@ import { authService } from "../services/authService.js";
 import { demoScenarios, demoService } from "../services/demoService.js";
 
 export const authView = {
-  title: "Demo Mode",
+  title: "Вход в vbloge",
   render() {
     return renderPublicLayout(`
       <section class="public-demo-card card pad">
@@ -12,9 +12,9 @@ export const authView = {
           <span class="brand-mark">v</span>
           <strong>vbloge</strong>
         </div>
-        <p class="eyebrow">Public demo</p>
-        <h1>Influencer marketing OS для кампаний, сделок и AI</h1>
-        <p class="lead">Откройте готовый демо-аккаунт без регистрации: dashboard, блогеры, рекламные кампании, Premium Deal Room, чат, escrow, аналитика и AI Campaign Manager.</p>
+        <p class="eyebrow">Готовый продуктовый сценарий</p>
+        <h1>Операционная система для influencer-маркетинга</h1>
+        <p class="lead">Откройте рабочее пространство без регистрации: кампании, блогеры, сделки, чат, оплата, аналитика и AI-помощник уже связаны в один путь.</p>
         <div class="button-row">
           <button class="btn" type="button" id="demo-login"><span class="tool-icon">→</span>Войти в демо</button>
           <button class="btn secondary" type="button" id="scenario-toggle"><span class="tool-icon">✦</span>Выбрать сценарий</button>
@@ -24,7 +24,7 @@ export const authView = {
             .map(
               (scenario) => `
                 <button class="quick-action" type="button" data-demo-scenario="${scenario.id}">
-                  <strong>${escapeHtml(scenario.title)}</strong>
+                  <strong>${escapeHtml(scenario.title.replace("Demo", "Сценарий"))}</strong>
                   <span>${escapeHtml(scenario.description || "Запустить готовый сценарий.")}</span>
                 </button>
               `,

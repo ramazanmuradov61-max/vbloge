@@ -35,7 +35,7 @@ export const walletView = {
           <div>
             <span class="metric-label">Доступный баланс</span>
             <strong class="wallet-balance">${money(wallet.balance)}</strong>
-            <p class="lead">Финансовая модель пока демо, но структура готова к платежному backend.</p>
+            <p class="lead">Финансовый центр показывает баланс, резервы и выплаты по сделкам.</p>
           </div>
           <div class="wallet-mini-chart">
             <span style="height: 74%"></span>

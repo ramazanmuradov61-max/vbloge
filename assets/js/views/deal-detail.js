@@ -80,7 +80,7 @@ const primaryStep = ({ deal, report, isBuyer, canPay, canApprove, canUploadMater
     return {
       status: "Ожидается действие блогера",
       title: "Загрузите креатив или материалы",
-      text: "Добавьте ссылку, файл demo или комментарий, чтобы закупщик мог быстро утвердить следующий шаг.",
+      text: "Добавьте ссылку, файл или комментарий, чтобы закупщик мог быстро утвердить следующий шаг.",
       action: "Загрузить креатив",
       actionType: "materials",
       owner: "Блогер",
@@ -325,7 +325,7 @@ export const dealDetailView = {
             <summary>Добавить материал</summary>
             <form class="form material-form" id="material-form">
               <div class="field"><label>Название</label><input name="title" placeholder="Креатив, ссылка или файл" required /></div>
-              <div class="field"><label>URL / файл demo</label><input name="url" placeholder="https://..." required /></div>
+              <div class="field"><label>URL / файл</label><input name="url" placeholder="https://..." required /></div>
               <div class="field"><label>Комментарий</label><input name="comment" placeholder="Что важно учесть" /></div>
               <button class="btn secondary" type="submit" ${permissionService.disabledAttr(canUploadMaterials)}>Сохранить материал</button>
             </form>

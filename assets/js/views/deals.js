@@ -1,5 +1,34 @@
 import { enrichDeal, getState } from "../store.js";
-import { escapeHtml, money, pageHeader, statusBadge, table } from "../components/ui.js";
+import { escapeHtml, money, pageHeader, smartEmptyState, statusBadge } from "../components/ui.js";
+
+const productText = (value) =>
+  String(value || "")
+    .replace(/Public Demo/gi, "Готовый сценарий")
+    .replace(/demo/gi, "сценарий")
+    .replace(/демо/gi, "сценарий")
+    .replace(/РК/g, "кампания")
+    .replace(/рк/g, "кампания");
+
+const dealCard = (deal) => {
+  const campaign = deal.campaign || { id: deal.campaignId || "", title: "Кампания не найдена" };
+  const blogger = deal.blogger || { id: deal.bloggerId || "", name: "Блогер не найден" };
+  return `
+    <article class="deal-list-card">
+      <a class="deal-list-main" href="#/deals/${deal.id}">
+        <span>
+          <strong>${escapeHtml(productText(campaign.title))}</strong>
+          <small>${escapeHtml(blogger.name)} · ${escapeHtml(deal.number)}</small>
+        </span>
+        ${statusBadge(deal.status)}
+      </a>
+      <div class="deal-list-meta">
+        <span><small>Сумма</small><strong>${money(deal.amount)}</strong></span>
+        <span><small>Срок</small><strong>${escapeHtml(deal.due || "Без срока")}</strong></span>
+        <a href="#/chat/${deal.chatId}">Чат</a>
+      </div>
+    </article>
+  `;
+};
 
 export const dealsView = {
   title: "Сделки",
@@ -10,32 +39,24 @@ export const dealsView = {
       .map(enrichDeal);
 
     return `
-      <section class="page">
+      <section class="page deals-mobile-list">
         ${pageHeader({
-          eyebrow: "Операции",
-          title: "Сделки",
-          lead: "Список договоренностей, оплат, сроков и статусов согласования.",
+          eyebrow: "Сделки",
+          title: "Рабочие пространства",
+          lead: "Каждая сделка показывает статус, срок, сумму и следующий шаг.",
           actions: `<a class="btn secondary" href="#/invitations"><span class="tool-icon">◇</span>Приглашения</a>`,
         })}
-        ${table({
-          headers: ["ID", "Кампания", "Блогер", "Сумма", "Статус", "Срок", "Чат"],
-          rows: deals.map((deal) => {
-            const campaign = deal.campaign || { id: deal.campaignId || "", title: "Кампания не найдена" };
-            const blogger = deal.blogger || { id: deal.bloggerId || "", name: "Блогер не найден" };
-
-            return `
-              <tr>
-                <td><a href="#/deals/${deal.id}">${escapeHtml(deal.number)}</a></td>
-                <td>${campaign.id ? `<a href="#/campaigns/${campaign.id}">${escapeHtml(campaign.title)}</a>` : escapeHtml(campaign.title)}</td>
-                <td>${blogger.id ? `<a href="#/bloggers/${blogger.id}">${escapeHtml(blogger.name)}</a>` : escapeHtml(blogger.name)}</td>
-                <td>${money(deal.amount)}</td>
-                <td>${statusBadge(deal.status)}</td>
-                <td>${escapeHtml(deal.due || "Без срока")}</td>
-                <td><a href="#/chat/${deal.chatId}">Открыть</a></td>
-              </tr>
-            `;
-          }),
-        })}
+        <div class="stack-list">
+          ${
+            deals.length
+              ? deals.map(dealCard).join("")
+              : smartEmptyState({
+                  title: "Сделок пока нет",
+                  text: "Создайте кампанию и пригласите блогера. После принятия здесь появится Deal OS.",
+                  action: { href: "#/campaigns", label: "Создать кампанию" },
+                })
+          }
+        </div>
       </section>
     `;
   },

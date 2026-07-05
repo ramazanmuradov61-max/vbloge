@@ -2,6 +2,15 @@ import { actionCenterService } from "../services/actionCenterService.js";
 import { getState, markNotificationsRead } from "../store.js";
 import { emptyState, escapeHtml, pageHeader } from "../components/ui.js";
 
+const productText = (value) =>
+  String(value || "")
+    .replace(/\bStore\b/g, "данных")
+    .replace(/Public Demo/gi, "Готовый сценарий")
+    .replace(/demo/gi, "сценарий")
+    .replace(/демо/gi, "сценарий")
+    .replace(/РК/g, "кампания")
+    .replace(/рк/g, "кампания");
+
 const groupLabels = {
   critical: {
     title: "Critical",
@@ -24,9 +33,9 @@ const groupLabels = {
 const actionCard = (item) => `
   <a class="action-center-card ${escapeHtml(item.tone)}" href="${escapeHtml(item.href)}">
     <span>${escapeHtml(item.source)}</span>
-    <strong>${escapeHtml(item.title)}</strong>
-    <small>${escapeHtml(item.text)}</small>
-    <em>${escapeHtml(item.action)}</em>
+    <strong>${escapeHtml(productText(item.title))}</strong>
+    <small>${escapeHtml(productText(item.text))}</small>
+    <em>${escapeHtml(productText(item.action))}</em>
   </a>
 `;
 
@@ -70,10 +79,10 @@ export const notificationsView = {
               <section class="smart-hero">
                 <div>
                   <span>${escapeHtml(top.source)}</span>
-                  <strong>${escapeHtml(top.title)}</strong>
-                  <p>${escapeHtml(top.text)}</p>
+                  <strong>${escapeHtml(productText(top.title))}</strong>
+                  <p>${escapeHtml(productText(top.text))}</p>
                 </div>
-                <a class="btn" href="${escapeHtml(top.href)}">${escapeHtml(top.action)}</a>
+                <a class="btn" href="${escapeHtml(top.href)}">${escapeHtml(productText(top.action))}</a>
               </section>
             `
             : ""

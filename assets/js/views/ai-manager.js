@@ -22,7 +22,7 @@ const campaignSummary = (item) => `
       <div><span>CPA</span><strong>${escapeHtml(item.forecast.cpa)}</strong></div>
     </div>
     <div class="button-row">
-      <a class="btn" href="#/campaigns/${item.campaign.id}">Открыть РК</a>
+      <a class="btn" href="#/campaigns/${item.campaign.id}">Открыть кампанию</a>
       <a class="btn secondary" href="#/ai-manager/${item.campaign.id}">AI Plan</a>
       ${item.recommendedAction ? `<a class="btn secondary" href="${item.recommendedAction.href}">${escapeHtml(item.recommendedAction.title)}</a>` : ""}
     </div>

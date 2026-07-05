@@ -1,6 +1,14 @@
 import { addMessage, enrichDeal, getChat, getDeal, getMessages, getState } from "../store.js";
 import { avatar, emptyState, escapeHtml, money, pageHeader, statusBadge } from "../components/ui.js";
 
+const productText = (value) =>
+  String(value || "")
+    .replace(/Public Demo/gi, "Готовый сценарий")
+    .replace(/demo/gi, "сценарий")
+    .replace(/демо/gi, "сценарий")
+    .replace(/РК/g, "кампания")
+    .replace(/рк/g, "кампания");
+
 const renderThread = (thread) => {
   const deal = enrichDeal(getDeal(thread.dealId));
   const messages = getMessages(thread.id);
@@ -9,15 +17,15 @@ const renderThread = (thread) => {
     <div class="card pad">
       <div class="list-item">
         <div>
-          <h2>${escapeHtml(thread.title)}</h2>
-          <p class="meta">${escapeHtml(thread.subtitle)}</p>
+          <h2>${escapeHtml(productText(thread.title))}</h2>
+          <p class="meta">${escapeHtml(productText(thread.subtitle))}</p>
         </div>
         ${deal ? statusBadge(deal.status) : ""}
       </div>
       ${
         deal
           ? `<div class="grid cols-4">
-              <a class="list-item" href="#/campaigns/${deal.campaign.id}"><span>Кампания</span><strong>${escapeHtml(deal.campaign.title)}</strong></a>
+              <a class="list-item" href="#/campaigns/${deal.campaign.id}"><span>Кампания</span><strong>${escapeHtml(productText(deal.campaign.title))}</strong></a>
               <a class="list-item" href="#/bloggers/${deal.blogger.id}"><span>Блогер</span><strong>${escapeHtml(deal.blogger.name)}</strong></a>
               <a class="list-item" href="#/deals/${deal.id}"><span>Сделка</span><strong>${escapeHtml(deal.number)}</strong></a>
               <div class="list-item"><span>Бюджет</span><strong>${money(deal.amount)}</strong></div>
@@ -30,7 +38,7 @@ const renderThread = (thread) => {
         .map(
           (message) => `
             <div class="message ${message.mine ? "mine" : ""}">
-              <span>${escapeHtml(message.text)}</span>
+              <span>${escapeHtml(productText(message.text))}</span>
               <small>${escapeHtml(message.time || "")}</small>
             </div>
           `,
@@ -69,10 +77,10 @@ export const chatView = {
                     return `
                       <a class="list-item ${thread.id === active.id ? "active-row" : ""}" href="#/chat/${thread.id}">
                         <span class="person">
-                          ${avatar(thread.title)}
+                          ${avatar(productText(thread.title))}
                           <span class="person-text">
-                            <strong>${escapeHtml(thread.title)}</strong>
-                            <span class="meta">${escapeHtml(deal?.campaign?.title || thread.subtitle)}</span>
+                            <strong>${escapeHtml(productText(thread.title))}</strong>
+                            <span class="meta">${escapeHtml(productText(deal?.campaign?.title || thread.subtitle))}</span>
                           </span>
                         </span>
                         ${deal ? statusBadge(deal.status) : ""}

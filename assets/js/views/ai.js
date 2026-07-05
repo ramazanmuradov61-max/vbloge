@@ -26,7 +26,7 @@ export const aiView = {
           <div>
             <span class="status green">AI online</span>
             <h2>Привет, я уже проверил кампании, сделки и дедлайны</h2>
-            <p class="lead">Рекомендации ниже основаны на текущем Store: бюджете, ER блогеров, статусах сделок, дедлайнах, отчетах и активности в чатах.</p>
+            <p class="lead">Рекомендации основаны на текущих кампаниях, бюджете, ER блогеров, статусах сделок, дедлайнах, отчетах и активности в чатах.</p>
           </div>
           <div class="grid cols-3">
             <div class="compact-card"><span><strong>Почему этот блогер</strong><small>AI смотрит ER, CPM, аудиторию, календарь и историю сделок.</small></span></div>
@@ -52,7 +52,7 @@ export const aiView = {
               <p class="eyebrow">AI Campaign Manager</p>
               <h2>AI ведет кампании от идеи до сделки</h2>
             </div>
-            <a class="btn" href="#/ai-manager">Открыть AI Manager</a>
+            <a class="btn secondary" href="#/ai-manager">Открыть AI Manager</a>
           </div>
           <div class="grid cols-3">
             ${campaignOverview
@@ -124,7 +124,7 @@ export const aiView = {
               <label for="ai-prompt">Контекст</label>
               <textarea id="ai-prompt" name="prompt">Подготовить следующий шаг по кампании и сохранить результат в истории.</textarea>
             </div>
-            <button class="btn" type="submit">Сформировать рекомендацию</button>
+            <button class="btn secondary" type="submit">Сформировать рекомендацию</button>
           </form>
           <aside class="card pad">
             <div class="section-title">

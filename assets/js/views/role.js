@@ -8,11 +8,11 @@ export const roleView = {
   render() {
     const { currentRole } = authService.getSession();
     return renderPublicLayout(`
-      <section class="page">
+      <section class="page role-choice-page">
         <div>
-          <p class="eyebrow">Демо-режим</p>
-          <h1>Выбор роли</h1>
-          <p class="lead">Роль сохраняется в localStorage. После перезагрузки откроется соответствующий кабинет.</p>
+          <p class="eyebrow">Настройка кабинета</p>
+          <h1>Кем вы хотите пройти сценарий?</h1>
+          <p class="lead">Выберите роль. vbloge сохранит выбор и после перезагрузки откроет нужный кабинет.</p>
         </div>
         <div class="grid">
           ${roles

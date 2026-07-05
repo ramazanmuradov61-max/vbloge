@@ -5382,6 +5382,54 @@ button.workflow-material {
   color: #2dbe60;
 }
 
+.deals-mobile-list .stack-list {
+  gap: 12px;
+}
+
+.deal-list-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border, #e6e8ef);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--shadow-sm, 0 8px 22px rgba(16, 24, 40, 0.06));
+}
+
+.deal-list-main,
+.deal-list-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.deal-list-main {
+  color: inherit;
+}
+
+.deal-list-main span,
+.deal-list-meta span {
+  display: grid;
+  gap: 3px;
+}
+
+.deal-list-main small,
+.deal-list-meta small {
+  color: var(--muted, #667085);
+  font-size: 12px;
+}
+
+.deal-list-meta {
+  padding-top: 10px;
+  border-top: 1px solid var(--border, #e6e8ef);
+}
+
+.deal-list-meta a {
+  font-weight: 760;
+  color: var(--primary, #ff5c62);
+}
+
 @media (max-width: 520px) {
   .recommendation-body {
     grid-template-columns: 76px 1fr;

@@ -2,6 +2,14 @@ import { scoreService } from "../services/scoreService.js";
 import { getState, isFavorite, toggleFavorite } from "../store.js";
 import { avatar, escapeHtml, money, pageHeader, smartEmptyState, statusBadge } from "../components/ui.js";
 
+const productText = (value) =>
+  String(value || "")
+    .replace(/Public Demo/gi, "Готовый сценарий")
+    .replace(/demo/gi, "сценарий")
+    .replace(/демо/gi, "сценарий")
+    .replace(/РК/g, "кампания")
+    .replace(/рк/g, "кампания");
+
 const parseMoney = (value) => Number(String(value || "0").replace(/[^\d]/g, "")) || 0;
 const parseReach = (value) => String(value || "0").replace("тыс.", "k").replace("млн", "m");
 
@@ -20,7 +28,7 @@ const matchFor = (blogger, campaign) => {
 const similarCampaigns = (blogger) => {
   const { campaigns } = getState();
   const items = campaigns.filter((campaign) => campaign.category === blogger.category || (campaign.bloggerIds || []).includes(blogger.id)).slice(0, 2);
-  return items.length ? items.map((campaign) => campaign.title).join(", ") : "Запуски в похожей категории";
+  return items.length ? items.map((campaign) => productText(campaign.title)).join(", ") : "Запуски в похожей категории";
 };
 
 const recommendationReason = (blogger, campaign) => {
@@ -39,7 +47,7 @@ export const bloggersView = {
         ${pageHeader({
           eyebrow: isBuyer ? "AI подбор" : "Каталог",
           title: isBuyer ? "Кого пригласить" : "Блогеры",
-          lead: isBuyer ? `Рекомендации под кампанию: ${escapeHtml(campaign?.title || "активная кампания")}.` : "Карточки авторов связаны с кампаниями, сделками, чатами и избранным.",
+          lead: isBuyer ? `Рекомендации под кампанию: ${escapeHtml(productText(campaign?.title || "активная кампания"))}.` : "Карточки авторов связаны с кампаниями, сделками, чатами и избранным.",
           actions: `<a class="btn secondary" href="#/favorites"><span class="tool-icon">★</span>Избранное</a>`,
         })}
 
@@ -101,7 +109,7 @@ export const bloggersView = {
                     `;
                   })
                   .join("")
-              : smartEmptyState({ title: "Блогеров пока нет", text: "Запустите demo-данные или создайте кампанию, чтобы AI предложил авторов.", action: { href: "#/dev", label: "Открыть Dev Panel" } })
+              : smartEmptyState({ title: "Блогеров пока нет", text: "Создайте кампанию, и vbloge предложит подходящих авторов.", action: { href: "#/campaigns", label: "Создать кампанию" } })
           }
         </div>
       </section>

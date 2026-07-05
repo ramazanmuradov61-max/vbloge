@@ -40,7 +40,7 @@ export const statsView = {
       <section class="page">
         ${pageHeader({
           eyebrow: "Аналитика",
-          title: "Демо-аналитика",
+          title: "Аналитика кампаний",
           lead: "Графики подготовлены к подключению реальных отчетов по кампаниям, сделкам и блогерам.",
         })}
         <section class="grid cols-4">

@@ -2,10 +2,18 @@ import { getBlogger, getCampaign, getDealsForCampaign, isFavorite, toggleFavorit
 import { aiCampaignService } from "../services/aiCampaignService.js";
 import { emptyState, escapeHtml, money, progressBar, statusBadge } from "../components/ui.js";
 
+const productText = (value) =>
+  String(value || "")
+    .replace(/Public Demo/gi, "Готовый сценарий")
+    .replace(/demo/gi, "сценарий")
+    .replace(/демо/gi, "сценарий")
+    .replace(/РК/g, "кампания")
+    .replace(/рк/g, "кампания");
+
 const briefBlock = (title, text) => `
   <div class="brief-block">
     <span>${escapeHtml(title)}</span>
-    <strong>${escapeHtml(text || "Не задано")}</strong>
+    <strong>${escapeHtml(productText(text || "Не задано"))}</strong>
   </div>
 `;
 
@@ -30,7 +38,7 @@ export const campaignDetailView = {
             <span class="campaign-card-icon" aria-hidden="true">▣</span>
             <div>
               <p class="eyebrow">${escapeHtml(campaign.brand)}</p>
-              <h1>${escapeHtml(campaign.title)}</h1>
+              <h1>${escapeHtml(productText(campaign.title))}</h1>
               ${statusBadge(campaign.status)}
             </div>
           </div>
@@ -76,7 +84,7 @@ export const campaignDetailView = {
             ${briefBlock("Формат", campaign.platform || "Shorts / Telegram")}
             ${briefBlock("CTA", aiBrief.cta)}
             ${briefBlock("KPI", aiBrief.kpi)}
-            ${briefBlock("Материалы", campaign.attachments?.length ? campaign.attachments.join(", ") : "Нет")}
+            ${briefBlock("Материалы", campaign.attachments?.length ? campaign.attachments.join(", ") : "Материалы еще не добавлены")}
             ${briefBlock("Ограничения", aiBrief.restrictions || campaign.requirements)}
           </div>
         </section>

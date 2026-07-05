@@ -72,7 +72,7 @@ export const bloggerDetailView = {
         <section class="card pad mobile-section" id="blogger-content">
           <h2>Контент</h2>
           <div class="grid cols-3 portfolio-grid">
-            ${(blogger.portfolio || []).map((item) => `<div class="portfolio-tile"><strong>${escapeHtml(item)}</strong><span>демо-кейс</span></div>`).join("")}
+            ${(blogger.portfolio || []).map((item) => `<div class="portfolio-tile"><strong>${escapeHtml(item)}</strong><span>кейс</span></div>`).join("")}
           </div>
         </section>
 
@@ -112,19 +112,19 @@ export const bloggerDetailView = {
             <div class="field">
               <label for="invite-mode">Кампания</label>
               <select id="invite-mode" name="mode">
-                <option value="existing">Выбрать существующую РК</option>
-                <option value="new">Создать новую РК</option>
+                <option value="existing">Выбрать существующую кампанию</option>
+                <option value="new">Создать новую кампанию</option>
               </select>
             </div>
             <div class="field invite-existing">
-              <label for="invite-campaign">Существующая РК</label>
+              <label for="invite-campaign">Существующая кампания</label>
               <select id="invite-campaign" name="campaignId">
                 ${state.campaigns.map((campaign) => `<option value="${campaign.id}">${escapeHtml(campaign.title)}</option>`).join("")}
               </select>
             </div>
             <div class="invite-new" hidden>
               <div class="grid cols-2">
-                <div class="field"><label>Название</label><input name="title" value="Новая РК для ${escapeHtml(blogger.name)}" /></div>
+                <div class="field"><label>Название</label><input name="title" value="Новая кампания для ${escapeHtml(blogger.name)}" /></div>
                 <div class="field"><label>Бюджет</label><input name="budget" type="number" value="250000" /></div>
                 <div class="field"><label>Площадка</label><input name="platform" value="${escapeHtml(blogger.channels.join(", "))}" /></div>
                 <div class="field"><label>Категория</label><input name="category" value="${escapeHtml(blogger.category)}" /></div>
@@ -200,7 +200,7 @@ export const bloggerDetailView = {
             <a class="btn" href="#/bloggers">Пригласить еще</a>
             <a class="btn secondary" href="#/invitations">Открыть приглашения</a>
           </div>
-          <small class="meta">Invitation ${escapeHtml(invitation?.id || "")} сохранен в Store со статусом Pending.</small>
+          <small class="meta">Статус: ожидаем ответ блогера.</small>
         </div>
       `;
     });

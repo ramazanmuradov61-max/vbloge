@@ -2,6 +2,14 @@ import { workflowEngine } from "../services/workflowEngine.js";
 import { createCampaign, getState, isFavorite, toggleFavorite } from "../store.js";
 import { escapeHtml, money, smartEmptyState, statusBadge } from "../components/ui.js";
 
+const productText = (value) =>
+  String(value || "")
+    .replace(/Public Demo/gi, "Готовый сценарий")
+    .replace(/demo/gi, "сценарий")
+    .replace(/демо/gi, "сценарий")
+    .replace(/РК/g, "кампания")
+    .replace(/рк/g, "кампания");
+
 const campaignStatusLabel = (campaign) => workflowEngine.campaign(campaign)?.current?.title || campaign.status || "Создана";
 const nextStepLabel = (campaign) => workflowEngine.campaign(campaign)?.next?.title || "Открыть кампанию";
 
@@ -22,7 +30,7 @@ const campaignCard = (campaign) => {
       <a href="#/campaigns/${campaign.id}" class="campaign-card-main">
         <span class="campaign-card-icon" aria-hidden="true">▣</span>
         <span>
-          <strong>${escapeHtml(campaign.title)}</strong>
+          <strong>${escapeHtml(productText(campaign.title))}</strong>
           <small>${escapeHtml(campaign.brand || "vbloge")} · ${escapeHtml(campaign.category || "Категория")}</small>
         </span>
       </a>
@@ -50,16 +58,16 @@ const smartHero = ({ isBlogger, campaigns }) => {
     <section class="smart-hero buyer-journey-hero">
       <div>
         <span>${isBlogger ? "Подбор" : "Следующий шаг"}</span>
-        <strong>${isBlogger ? "Выберите кампанию, которая подходит вашему календарю." : `${escapeHtml(active.title)}: ${escapeHtml(nextStepLabel(active))}.`}</strong>
+        <strong>${isBlogger ? "Выберите кампанию, которая подходит вашему календарю." : `${escapeHtml(productText(active.title))}: ${escapeHtml(nextStepLabel(active))}.`}</strong>
         <p>${isBlogger ? "Откройте детали, проверьте бюджет и сроки перед откликом." : `Статус: ${escapeHtml(campaignStatusLabel(active))}. Система подскажет, что сделать дальше.`}</p>
       </div>
-      <a class="btn" href="#/campaigns/${active.id}">${isBlogger ? "Открыть" : "Продолжить"}</a>
+      <a class="btn secondary" href="#/campaigns/${active.id}">${isBlogger ? "Открыть" : "Продолжить"}</a>
     </section>
   `;
 };
 
 const createWizard = () => `
-  <details class="card pad campaign-create buyer-wizard-shell" id="campaign-create" open>
+  <details class="card pad campaign-create buyer-wizard-shell" id="campaign-create">
     <summary>Создать рекламную кампанию</summary>
     <form class="form campaign-form buyer-wizard" id="campaign-form">
       <div class="wizard-progress" aria-label="Прогресс создания кампании">
@@ -115,7 +123,7 @@ const createWizard = () => `
           <input id="campaign-budget" name="budget" type="number" min="0" value="350000" required />
         </div>
         <div class="field">
-          <label for="campaign-attachments">Вложения demo</label>
+          <label for="campaign-attachments">Вложения</label>
           <input id="campaign-attachments" name="attachments" type="file" multiple />
         </div>
       </section>
@@ -135,7 +143,7 @@ const createWizard = () => `
 
       <section class="wizard-step" data-wizard-step="5" hidden>
         <h2>Подтверждение</h2>
-        <p>Кампания будет создана в Store. Следующий экран — подбор блогеров.</p>
+        <p>После создания vbloge сразу откроет подбор блогеров.</p>
         <div class="buyer-confirm-card">
           <strong data-confirm-title></strong>
           <span data-confirm-budget></span>
@@ -163,9 +171,9 @@ export const campaignsView = {
           <div>
             <p class="eyebrow">Кампании</p>
             <h1>${isBlogger ? "Доступные кампании" : "Мои кампании"}</h1>
-            <p class="lead">${isBlogger ? "Выберите подходящую РК и откройте детали." : "Создайте РК, подберите блогеров и доведите сделку до отчета."}</p>
+            <p class="lead">${isBlogger ? "Выберите подходящую кампанию и откройте детали." : "Создайте кампанию, подберите блогеров и доведите сделку до отчета."}</p>
           </div>
-          ${isBlogger ? `<a class="btn secondary" href="#/favorites">Избранное</a>` : `<a class="btn" href="#campaign-create">+ Создать</a>`}
+          ${isBlogger ? `<a class="btn secondary" href="#/favorites">Избранное</a>` : `<a class="btn" href="#campaign-create">+ Кампания</a>`}
         </header>
 
         ${smartHero({ isBlogger, campaigns })}
@@ -194,6 +202,11 @@ export const campaignsView = {
   mount({ router }) {
     const form = document.querySelector("#campaign-form");
     if (form) {
+      document.querySelectorAll('a[href="#campaign-create"]').forEach((link) => {
+        link.addEventListener("click", () => {
+          document.querySelector("#campaign-create")?.setAttribute("open", "");
+        });
+      });
       let step = 1;
       const maxStep = 5;
       const updateWizard = () => {

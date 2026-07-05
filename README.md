@@ -20,6 +20,19 @@ What changed:
 - Campaign cards show workflow status and progress so the buyer understands where each campaign is in the path.
 - Analytics includes a short AI Summary with practical recommendations for the next campaign.
 
+## Product Consistency Review
+
+VBloge 6.1.1 is a product consistency pass. It does not add new features or change architecture; it aligns the existing app into one mobile product experience.
+
+What was reviewed and improved:
+
+- Unified product language around `campaign`, `deal`, `blogger`, `chat`, `report`, and `payment`.
+- Removed technical wording from main user flows: visible `Store`, `Public Demo`, `demo` labels, and mixed `РК` terminology were replaced in customer-facing screens.
+- CTA hierarchy was tightened: primary actions are reserved for the main next step; secondary navigation is visually quieter.
+- Deals list was converted from table-like presentation into mobile cards.
+- Empty states now explain what happened and point to the next useful action.
+- First launch, role choice, campaigns, blogger profile, invitation flow, Deal OS, chat, analytics, wallet, profile, notifications, and about screens were reviewed for product consistency.
+
 ## VBloge 5.0 - Smart Workflow & Automation
 
 Этап 5.0 переводит продукт из набора экранов в систему управления рекламными интеграциями. Архитектура, Router, Store и существующая бизнес-логика не менялись: новые сценарии работают поверх текущих данных.
