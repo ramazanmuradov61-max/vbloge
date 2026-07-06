@@ -5459,3 +5459,155 @@ button.workflow-material {
     transform: translateY(0);
   }
 }
+
+/* VBloge 7.0 - Zero Friction mobile layer */
+.zero-friction-home {
+  gap: 12px;
+  padding-bottom: calc(82px + env(safe-area-inset-bottom));
+}
+
+.zero-friction-home .mobile-home-top {
+  align-items: start;
+  gap: 12px;
+}
+
+.zero-friction-home .mobile-home-top h1 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.14;
+}
+
+.zero-friction-home .mobile-home-top .lead {
+  max-width: 34rem;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.zero-home-hero {
+  padding: 14px;
+  gap: 12px;
+  background:
+    linear-gradient(135deg, rgba(255, 92, 98, 0.1), rgba(37, 99, 235, 0.04)),
+    #fff;
+}
+
+.zero-home-hero .btn {
+  min-width: max-content;
+}
+
+.zero-quick-actions {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.zero-quick-actions .mobile-action {
+  min-height: 86px;
+  padding: 10px 8px;
+}
+
+.zero-quick-actions .mobile-action small {
+  display: none;
+}
+
+.smart-action-center .action-center-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.zero-empty-prompt {
+  border-style: dashed;
+  background: #fbfcff;
+}
+
+.ai-day-advice {
+  padding-top: 2px;
+}
+
+.ai-day-advice .mobile-list-card,
+.ai-main-advice {
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(255, 255, 255, 0)),
+    #fff;
+}
+
+.zero-ai-home {
+  gap: 12px;
+}
+
+.zero-ai-home .page-header {
+  margin-bottom: 0;
+}
+
+.zero-ai-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.zero-ai-card h2,
+.zero-ai-home .section-title h2,
+.zero-ai-home .card h2 {
+  font-size: 18px;
+  line-height: 1.18;
+}
+
+.zero-ai-signals {
+  gap: 8px;
+}
+
+.zero-ai-signals .compact-card {
+  min-height: 104px;
+  align-items: start;
+}
+
+.zero-more-panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.zero-more-panel summary {
+  min-height: 46px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.zero-more-panel[open] {
+  padding-bottom: 14px;
+}
+
+.zero-more-panel .split {
+  padding: 0 14px;
+}
+
+.campaign-create:not([open]) .buyer-wizard,
+.buyer-wizard [hidden],
+.wizard-step[hidden],
+.zero-more-panel:not([open]) > *:not(summary) {
+  display: none !important;
+}
+
+@media (max-width: 560px) {
+  .zero-quick-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .zero-home-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .zero-home-hero .btn {
+    width: 100%;
+  }
+
+  .zero-ai-signals {
+    grid-template-columns: 1fr;
+  }
+
+  .zero-ai-home .page-header .actions {
+    grid-template-columns: 1fr;
+  }
+}

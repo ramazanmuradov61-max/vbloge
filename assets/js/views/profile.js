@@ -11,6 +11,9 @@ export const profileView = {
     const { currentRole, user } = getState();
     const isBlogger = currentRole === "blogger";
     const blogger = getBlogger("mila-fresh");
+    const bloggerChannels = Array.isArray(blogger?.channels) ? blogger.channels : [];
+    const bloggerCalendar = Array.isArray(blogger?.calendar) ? blogger.calendar : [];
+    const bloggerPortfolio = Array.isArray(blogger?.portfolio) ? blogger.portfolio : [];
     const bloggerDeals = getDealsForBlogger("mila-fresh");
     const bloggerReviews = reviewService.listForTarget("mila-fresh");
     const bloggerScore = scoreService.getBloggerScore(blogger);
@@ -57,7 +60,7 @@ export const profileView = {
                   <h3>Аудитория</h3>
                   <p class="lead">${escapeHtml(blogger.audienceProfile)}</p>
                   <h3>Категории</h3>
-                  <div class="button-row">${[blogger.category, ...blogger.channels].map((item) => `<span class="status blue">${escapeHtml(item)}</span>`).join("")}</div>
+                  <div class="button-row">${[blogger.category, ...bloggerChannels].filter(Boolean).map((item) => `<span class="status blue">${escapeHtml(item)}</span>`).join("")}</div>
                 `
                 : `
                   <div class="profile-head">
@@ -81,7 +84,9 @@ export const profileView = {
             <div class="list">
               ${
                 isBlogger
-                  ? blogger.calendar.map((event) => `<div class="list-item"><span>${escapeHtml(event)}</span>${statusBadge("запланировано")}</div>`).join("")
+                  ? bloggerCalendar.length
+                    ? bloggerCalendar.map((event) => `<div class="list-item"><span>${escapeHtml(event)}</span>${statusBadge("запланировано")}</div>`).join("")
+                    : `<div class="list-item"><span>Календарь свободен</span>${statusBadge("можно планировать")}</div>`
                   : `
                     <div class="list-item"><span>Текущая роль</span><strong>Закупщик</strong></div>
                     <div class="list-item"><span>Финансы</span><strong>${escapeHtml(company.company.financeStatus)}</strong></div>
@@ -98,20 +103,32 @@ export const profileView = {
               <section class="card pad">
                 <h2>Портфолио</h2>
                 <div class="grid cols-3 portfolio-grid">
-                  ${blogger.portfolio.map((item) => `<div class="portfolio-tile"><strong>${escapeHtml(item)}</strong><span>кейс</span></div>`).join("")}
+                  ${
+                    bloggerPortfolio.length
+                      ? bloggerPortfolio.map((item) => `<div class="portfolio-tile"><strong>${escapeHtml(item)}</strong><span>кейс</span></div>`).join("")
+                      : `<div class="portfolio-tile"><strong>Портфолио обновляется</strong><span>кейс</span></div>`
+                  }
                 </div>
               </section>
               <section class="grid cols-2">
                 <article class="card pad">
                   <h2>История сделок</h2>
                   <div class="stack-list">
-                    ${bloggerDeals.map((deal) => `<a class="compact-card" href="#/deals/${deal.id}"><span><strong>${escapeHtml(deal.campaign.title)}</strong><small>${money(deal.amount)} · ${escapeHtml(deal.status)}</small></span>${statusBadge(deal.status)}</a>`).join("")}
+                    ${
+                      bloggerDeals.length
+                        ? bloggerDeals.map((deal) => `<a class="compact-card" href="#/deals/${deal.id}"><span><strong>${escapeHtml(deal.campaign?.title || deal.campaignTitle || deal.number || "Сделка")}</strong><small>${money(deal.amount || deal.budget || 0)} · ${escapeHtml(deal.status || "в работе")}</small></span>${statusBadge(deal.status || "в работе")}</a>`).join("")
+                        : `<a class="compact-card" href="#/campaigns"><span><strong>Сделок пока нет</strong><small>Откройте кампании и выберите подходящую.</small></span></a>`
+                    }
                   </div>
                 </article>
                 <article class="card pad">
                   <h2>Последние отзывы</h2>
                   <div class="stack-list">
-                    ${bloggerReviews.map((review) => `<div class="compact-card"><span><strong>${review.rating}/5 · ${escapeHtml(review.fromRole)}</strong><small>${escapeHtml(review.comment)} · ${(review.tags || []).map(escapeHtml).join(", ")}</small></span></div>`).join("")}
+                    ${
+                      bloggerReviews.length
+                        ? bloggerReviews.map((review) => `<div class="compact-card"><span><strong>${review.rating}/5 · ${escapeHtml(review.fromRole)}</strong><small>${escapeHtml(review.comment)} · ${(review.tags || []).map(escapeHtml).join(", ")}</small></span></div>`).join("")
+                        : `<div class="compact-card"><span><strong>Отзывы появятся после сделок</strong><small>Рейтинг обновится автоматически.</small></span></div>`
+                    }
                   </div>
                 </article>
               </section>

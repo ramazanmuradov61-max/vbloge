@@ -103,7 +103,7 @@ export const bloggersView = {
 
                         <div class="recommendation-footer">
                           ${statusBadge(`AI Score ${score.score}`)}
-                          <a class="btn" href="#/bloggers/${blogger.id}">Пригласить</a>
+                          <a class="btn secondary" href="#/bloggers/${blogger.id}">Пригласить</a>
                         </div>
                       </article>
                     `;

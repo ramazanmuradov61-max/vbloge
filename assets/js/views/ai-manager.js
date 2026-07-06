@@ -22,7 +22,7 @@ const campaignSummary = (item) => `
       <div><span>CPA</span><strong>${escapeHtml(item.forecast.cpa)}</strong></div>
     </div>
     <div class="button-row">
-      <a class="btn" href="#/campaigns/${item.campaign.id}">Открыть кампанию</a>
+      <a class="btn secondary" href="#/campaigns/${item.campaign.id}">Открыть кампанию</a>
       <a class="btn secondary" href="#/ai-manager/${item.campaign.id}">AI Plan</a>
       ${item.recommendedAction ? `<a class="btn secondary" href="${item.recommendedAction.href}">${escapeHtml(item.recommendedAction.title)}</a>` : ""}
     </div>
@@ -86,7 +86,7 @@ const bloggerRecommendation = (item, favorite) => `
     </div>
     <div class="button-row">
       <a class="btn secondary" href="#/bloggers/${item.blogger.id}">Профиль</a>
-      <button class="btn" type="button" data-ai-invite="${item.blogger.id}" data-campaign-id="${item.campaignId}">Пригласить</button>
+      <button class="btn secondary" type="button" data-ai-invite="${item.blogger.id}" data-campaign-id="${item.campaignId}">Пригласить</button>
       <button class="btn secondary" type="button" data-ai-favorite="${item.blogger.id}">${favorite ? "В избранном" : "В избранное"}</button>
     </div>
   </article>
@@ -143,7 +143,7 @@ export const aiManagerView = {
           lead: "Единый AI-пульт для закупщика: план кампании, риски, дедлайны, блогеры, действия и сообщения в чат.",
           actions: `
             <a class="btn secondary" href="#/ai">AI Home</a>
-            <a class="btn" href="#/campaigns/${selectedCampaign.id}">Открыть кампанию</a>
+            <a class="btn" href="#/campaigns/${selectedCampaign.id}">Следующий шаг</a>
           `,
         })}
 
@@ -229,7 +229,7 @@ export const aiManagerView = {
                 </div>
               </div>
               <input type="hidden" name="campaignId" value="${selectedCampaign.id}" />
-              <button class="btn" type="submit">Сгенерировать сообщение</button>
+              <button class="btn secondary" type="submit">Сгенерировать сообщение</button>
             </form>
             <div class="stack-list ai-generated-list">
               ${messages
@@ -244,7 +244,7 @@ export const aiManagerView = {
                       </span>
                       <div class="button-row">
                         <button class="btn secondary" type="button" data-copy-message="${escapeHtml(message.text)}">Скопировать</button>
-                        <button class="btn" type="button" data-insert-message="${message.id}">Вставить в чат</button>
+                        <button class="btn secondary" type="button" data-insert-message="${message.id}">Вставить в чат</button>
                         ${message.chatId ? `<a class="btn secondary" href="#/chat/${message.chatId}">Открыть чат</a>` : ""}
                       </div>
                     </div>

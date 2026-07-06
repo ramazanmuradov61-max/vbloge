@@ -33,6 +33,33 @@ What was reviewed and improved:
 - Empty states now explain what happened and point to the next useful action.
 - First launch, role choice, campaigns, blogger profile, invitation flow, Deal OS, chat, analytics, wallet, profile, notifications, and about screens were reviewed for product consistency.
 
+## VBloge 7.0 — Zero Friction Experience
+
+VBloge 7.0 focuses on reducing decision friction in the existing mobile app. Architecture, Store, Router, Service Layer, and business logic remain unchanged.
+
+UX principles:
+
+- One screen should answer one question: what is happening and what to do next.
+- Each core screen keeps one primary action; secondary actions are visually quieter.
+- AI works as an invisible helper: one recommendation at a time, placed near the relevant workflow.
+- Role-first UX keeps buyer and blogger priorities separate.
+- Mobile screens favor compact cards, short copy, and smart empty states instead of admin-style panels.
+
+What was simplified:
+
+- Home was reduced to Hero, Quick Actions, Action Center, campaigns/deals, latest messages, and one AI advice block.
+- Secondary KPI, payout, deadline, and long AI blocks were removed from the first screen.
+- AI Home was simplified into one main recommendation, two signals, short AI scenarios, and an expandable advanced panel.
+- Blogger and AI Manager cards now reserve primary buttons for the main next step and use secondary buttons for supporting actions.
+- Empty states now explain what happened and point to one useful action.
+
+What became faster:
+
+- The daily next step is visible immediately on Home.
+- Buyer can jump to campaign creation or blogger search from the first screen.
+- AI no longer competes with the main workflow and exposes one recommendation first.
+- Deal, chat, campaign, and profile paths remain available through the existing navigation and internal links.
+
 ## VBloge 5.0 - Smart Workflow & Automation
 
 Этап 5.0 переводит продукт из набора экранов в систему управления рекламными интеграциями. Архитектура, Router, Store и существующая бизнес-логика не менялись: новые сценарии работают поверх текущих данных.
