@@ -36,7 +36,7 @@ export const automationService = {
           title: "Подготовить напоминание",
           text: `${deal.blogger?.name || "Блогер"} давно не обновлял статус по креативу.`,
           href: dealHref(deal),
-          action: "Открыть Deal OS",
+          action: "Открыть сделку",
         });
       }
 
@@ -83,7 +83,7 @@ export const automationService = {
         priority: 45,
         tone: "blue",
         title: "Найти подходящую кампанию",
-        text: "AI рекомендует проверить каталог и сохранить интересные РК.",
+        text: "AI рекомендует проверить каталог и сохранить интересные кампании.",
         href: "#/campaigns",
         action: "Открыть",
       });

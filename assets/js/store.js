@@ -284,7 +284,7 @@ export const createCampaign = (payload) => {
 
   const nextState = addNotificationToState(
     { ...state, campaigns: [campaign, ...state.campaigns] },
-    { type: "campaign", title: "Создана новая РК", text: campaign.title, campaignId: campaign.id },
+    { type: "campaign", title: "Создана новая кампания", text: campaign.title, campaignId: campaign.id },
   );
   return setFullState(nextState).campaigns[0];
 };

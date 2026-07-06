@@ -44,7 +44,7 @@ export const aiService = {
   recommendations() {
     return [
       { id: "new-bloggers", title: "Найдено 8 новых блогеров", text: "Похожие на Mila Fresh авторы в Lifestyle и Sport.", href: "#/bloggers", tone: "blue" },
-      { id: "campaign-manager", title: "AI готов вести кампанию", text: "Откройте план, риски, дедлайны и действия по активным РК.", href: "#/ai-manager", tone: "green" },
+      { id: "campaign-manager", title: "AI готов вести кампанию", text: "Откройте план, риски, дедлайны и действия по активной кампании.", href: "#/ai-manager", tone: "green" },
       { id: "deal-attention", title: "2 сделки требуют внимания", text: "Проверьте отчет Nord Social и оплату Domio.", href: "#/deals", tone: "amber" },
       { id: "budget", title: "Можно оптимизировать бюджет", text: "AI предлагает перераспределить 12% бюджета в Shorts.", href: "#/stats", tone: "green" },
       { id: "deadline", title: "Срок публикации скоро наступит", text: "У Nike Air Max ближайший дедлайн по сценарию.", href: "#/calendar", tone: "rose" },

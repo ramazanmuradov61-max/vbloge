@@ -15,7 +15,7 @@ const routeLabels = {
   chat: "Чат",
   notifications: "Уведомления",
   ai: "AI",
-  "ai-manager": "AI Manager",
+  "ai-manager": "AI-план",
   profile: "Профиль",
   company: "Компания",
   stats: "Аналитика",
@@ -65,7 +65,7 @@ export const renderShell = ({ currentPath, content }) => {
         <div class="topbar">
           <a class="topbar-ai-status" href="#/ai" aria-label="AI статус">
             <span aria-hidden="true">AI</span>
-            <strong>online</strong>
+            <strong>готов</strong>
           </a>
           <a class="user-chip" href="#/profile">
             ${avatar(user.name)}

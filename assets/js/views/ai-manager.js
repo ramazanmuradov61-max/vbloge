@@ -9,7 +9,7 @@ const campaignSummary = (item) => `
   <article class="card pad ai-campaign-card">
     <div class="section-title">
       <div>
-        <span class="status blue">AI Campaign</span>
+        <span class="status blue">AI-план</span>
         <h2>${escapeHtml(item.campaign.title)}</h2>
       </div>
       ${statusBadge(item.status)}
@@ -33,7 +33,7 @@ const planBlock = (campaign, plan) => `
   <article class="card pad ai-plan-card">
     <div class="section-title">
       <div>
-        <p class="eyebrow">AI Plan</p>
+        <p class="eyebrow">AI-план</p>
         <h2>${escapeHtml(campaign.title)}</h2>
       </div>
       ${statusBadge("План обновлен")}
@@ -58,7 +58,7 @@ const planBlock = (campaign, plan) => `
         <h3>Дедлайны и риски</h3>
         <div class="stack-list">
           ${plan.deadlines.map((item) => `<div class="compact-card"><span><strong>${escapeHtml(item)}</strong><small>контрольная дата</small></span></div>`).join("")}
-          ${plan.risks.map((item) => `<div class="compact-card"><span><strong>${escapeHtml(item)}</strong><small>AI risk</small></span></div>`).join("")}
+          ${plan.risks.map((item) => `<div class="compact-card"><span><strong>${escapeHtml(item)}</strong><small>риск</small></span></div>`).join("")}
         </div>
       </div>
     </div>
@@ -120,7 +120,7 @@ const deadlineCard = (deadline) => `
 `;
 
 export const aiManagerView = {
-  title: "AI Campaign Manager",
+  title: "AI-план кампании",
   render({ params }) {
     const state = getState();
     const overview = aiCampaignService.overview();
@@ -138,29 +138,29 @@ export const aiManagerView = {
     return `
       <section class="page ai-manager-page">
         ${pageHeader({
-          eyebrow: "AI Campaign Manager",
-          title: "AI-менеджер рекламных кампаний",
-          lead: "Единый AI-пульт для закупщика: план кампании, риски, дедлайны, блогеры, действия и сообщения в чат.",
+          eyebrow: "AI-план",
+          title: "План кампании",
+          lead: "Кампания, риски, дедлайны и следующий шаг без лишних блоков.",
           actions: `
-            <a class="btn secondary" href="#/ai">AI Home</a>
+            <a class="btn secondary" href="#/ai">AI</a>
             <a class="btn" href="#/campaigns/${selectedCampaign.id}">Следующий шаг</a>
           `,
         })}
 
         <section class="ai-manager-hero">
           <article class="card pad ai-command-main">
-            <span class="status blue">Live manager</span>
+            <span class="status blue">AI-подсказка</span>
             <h2>${escapeHtml(selectedCampaign.title)}</h2>
-            <p class="lead">${escapeHtml(selectedOverview.forecast.expectedResult)}. Следующий лучший шаг: ${escapeHtml(plan.nextBestStep)}</p>
+            <p class="lead">${escapeHtml(selectedOverview.forecast.expectedResult)}. Дальше: ${escapeHtml(plan.nextBestStep)}</p>
             <div class="ai-signal-grid">
               <div><span>Статус</span><strong>${escapeHtml(selectedCampaign.status)}</strong></div>
-              <div><span>Прогноз успеха</span><strong>${escapeHtml(selectedOverview.forecast.successProbability)}</strong></div>
+              <div><span>Прогноз</span><strong>${escapeHtml(selectedOverview.forecast.successProbability)}</strong></div>
               <div><span>Риски</span><strong>${risks.length}</strong></div>
               <div><span>Дедлайны</span><strong>${deadlines.length}</strong></div>
             </div>
           </article>
           <aside class="card pad">
-            <h2>Активные кампании</h2>
+            <h2>Кампании</h2>
             <div class="stack-list">
               ${overview.map((item) => `<a class="compact-card ${item.campaign.id === selectedCampaign.id ? "active-row" : ""}" href="#/ai-manager/${item.campaign.id}"><span><strong>${escapeHtml(item.campaign.title)}</strong><small>${escapeHtml(item.attention)}</small></span>${statusBadge(item.status)}</a>`).join("")}
             </div>
@@ -174,7 +174,7 @@ export const aiManagerView = {
 
         <section class="card pad">
           <div class="section-title">
-            <h2>Рекомендации блогеров под кампанию</h2>
+            <h2>Кого пригласить</h2>
             <a href="#/bloggers">Каталог</a>
           </div>
           <div class="grid cols-2">
@@ -184,13 +184,13 @@ export const aiManagerView = {
 
         <section class="grid cols-2">
           <article class="card pad">
-            <h2>AI Actions</h2>
+            <h2>Действия</h2>
             <div class="recommendation-grid">
               ${recommendationService.actionsForCampaign(selectedCampaign.id).map(actionCard).join("")}
             </div>
           </article>
           <article class="card pad">
-            <h2>AI-риск-анализ</h2>
+            <h2>Риски</h2>
             <div class="stack-list">
               ${risks.length ? risks.map(riskCard).join("") : emptyState("Критичных рисков нет.")}
             </div>
@@ -205,7 +205,7 @@ export const aiManagerView = {
             </div>
           </article>
           <article class="card pad">
-            <h2>AI-сообщения</h2>
+            <h2>Сообщения</h2>
             <form class="form ai-message-form" id="ai-message-form">
               <div class="grid cols-2">
                 <div class="field">

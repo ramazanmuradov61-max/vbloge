@@ -13,20 +13,20 @@ const productText = (value) =>
 
 const groupLabels = {
   critical: {
-    title: "Critical",
-    text: "Сроки, риски и действия, которые нельзя пропустить.",
+    title: "Срочно",
+    text: "То, что важно сделать сейчас.",
   },
   important: {
-    title: "Important",
-    text: "Ожидающие решения, отчеты, приглашения и проверки.",
+    title: "Важно",
+    text: "Ожидает вашего решения.",
   },
   info: {
-    title: "Info",
-    text: "Системные подсказки, AI-рекомендации и рабочие обновления.",
+    title: "Советы",
+    text: "Короткие подсказки по работе.",
   },
   success: {
-    title: "Success",
-    text: "Завершенные действия, выплаты и закрытые этапы.",
+    title: "Готово",
+    text: "Завершенные действия.",
   },
 };
 
@@ -58,7 +58,7 @@ const group = (key, items) => {
 };
 
 export const notificationsView = {
-  title: "Action Center",
+  title: "Центр действий",
   render() {
     const role = getState().currentRole || "buyer";
     const groups = actionCenterService.grouped({ role });
@@ -67,9 +67,9 @@ export const notificationsView = {
     return `
       <section class="page activity-center smart-action-center-page">
         ${pageHeader({
-          eyebrow: "Action Center",
+          eyebrow: "Центр действий",
           title: "Что требует внимания",
-          lead: "Все дедлайны, приглашения, сообщения, проблемы и AI-рекомендации отсортированы по приоритету.",
+          lead: "Срочные задачи, приглашения, сообщения и подсказки собраны в одном месте.",
           actions: `<button class="btn secondary" type="button" id="read-all">Отметить прочитанным</button>`,
         })}
 

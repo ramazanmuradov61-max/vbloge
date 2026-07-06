@@ -6,20 +6,20 @@ import { emptyState, errorState, escapeHtml, loadingState, pageHeader, skeletonS
 const formatStore = () => escapeHtml(JSON.stringify(getState(), null, 2));
 
 export const devView = {
-  title: "Dev Panel",
+  title: "Панель проверки",
   render() {
     const state = getState();
     const sampleDeal = state.deals[0];
     return `
       <section class="page">
         ${pageHeader({
-          eyebrow: "Debug",
-          title: "Dev Panel",
-          lead: "Инструменты для проверки мобильной версии и бизнес-сценариев без ручной подготовки данных.",
+          eyebrow: "Проверка",
+          title: "Панель проверки",
+          lead: "Сценарии, роли, импорт и экспорт состояния для быстрой проверки приложения.",
         })}
         <section class="grid cols-3">
           <article class="card pad">
-            <h2>Store</h2>
+            <h2>Состояние</h2>
             <div class="list">
               <div class="list-item"><span>Роль</span><strong>${escapeHtml(state.currentRole || "не выбрана")}</strong></div>
               <div class="list-item"><span>Кампании</span><strong>${state.campaigns.length}</strong></div>
@@ -39,16 +39,16 @@ export const devView = {
             <h2>Данные</h2>
             <div class="button-row">
               <button class="btn" type="button" id="create-test-deal">Тестовая сделка</button>
-              <button class="btn secondary" type="button" id="generate-demo-data">Public demo data</button>
-              <button class="btn secondary" type="button" id="reset-store">Сброс store</button>
+              <button class="btn secondary" type="button" id="generate-demo-data">Загрузить данные</button>
+              <button class="btn secondary" type="button" id="reset-store">Сбросить</button>
             </div>
           </article>
         </section>
         <section class="card pad">
           <div class="section-title">
             <div>
-              <p class="eyebrow">RC1</p>
-              <h2>Public demo scenarios</h2>
+              <p class="eyebrow">Сценарии</p>
+              <h2>Готовые проверки</h2>
             </div>
             <a class="btn secondary" href="#/about">Release info</a>
           </div>
@@ -67,8 +67,8 @@ export const devView = {
         </section>
         <section class="grid cols-2">
           <article class="card pad">
-            <h2>Export / Import Store</h2>
-            <p class="lead">JSON нужен для передачи состояния между устройствами и проверки reload/localStorage.</p>
+            <h2>Экспорт / импорт</h2>
+            <p class="lead">JSON помогает перенести текущее состояние и проверить сохранение после перезагрузки.</p>
             <div class="button-row">
               <button class="btn" type="button" id="export-store">Экспорт JSON</button>
               <button class="btn secondary" type="button" id="import-store">Импорт JSON</button>
@@ -79,7 +79,7 @@ export const devView = {
             <h2>Release controls</h2>
             <div class="stack-list">
               <a class="compact-card" href="#/about"><span><strong>О проекте</strong><small>Версия, build, roadmap, changelog и состояние MVP.</small></span></a>
-              <a class="compact-card" href="#/ai-manager"><span><strong>AI Campaign Manager</strong><small>Единый AI-продукт для кампаний и сделок.</small></span></a>
+              <a class="compact-card" href="#/ai-manager"><span><strong>AI-план</strong><small>Подсказки по кампаниям и сделкам.</small></span></a>
               <a class="compact-card" href="#/company"><span><strong>Company profile</strong><small>Команда, финансы, рейтинг и права.</small></span></a>
             </div>
           </article>
@@ -104,7 +104,7 @@ export const devView = {
           </div>
         </section>
         <section class="card pad">
-          <h2>Store JSON</h2>
+          <h2>JSON состояния</h2>
           <pre class="store-json">${formatStore()}</pre>
         </section>
       </section>

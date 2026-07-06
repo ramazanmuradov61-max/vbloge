@@ -192,7 +192,7 @@ const feedStatus = (item) => `
 
 const feedMessage = (message) => `
   <article class="workflow-feed-item message ${message.mine ? "mine" : ""}">
-    <span class="workflow-feed-icon" aria-hidden="true">${message.mine ? "Вы" : "msg"}</span>
+    <span class="workflow-feed-icon" aria-hidden="true">${message.mine ? "Вы" : "чат"}</span>
     <div>
       <strong>${safe(message.author || "Сообщение")}</strong>
       <p>${safe(message.text)}</p>
@@ -223,7 +223,7 @@ const reviewList = (reviews) =>
     : `<div class="workflow-empty">Отзывов по сделке пока нет.</div>`;
 
 export const dealDetailView = {
-  title: "Deal OS",
+  title: "Сделка",
   render({ params }) {
     const room = dealRoomService.get(params.id);
     if (!room) return emptyState("Сделка не найдена.");
@@ -248,7 +248,7 @@ export const dealDetailView = {
     const feed = [
       ...activity.slice(0, 5).map((item) => ({ type: "event", item })),
       ...messages.slice(-3).map((item) => ({ type: "message", item })),
-      { type: "event", item: { actor: "AI", action: suggestions.important, time: "сейчас", meta: "рекомендация" } },
+      { type: "event", item: { actor: "AI", action: suggestions.important, time: "сейчас", meta: "подсказка" } },
     ];
 
     return `
@@ -256,12 +256,12 @@ export const dealDetailView = {
         <nav class="workflow-nav" aria-label="Навигация сделки">
           <a class="btn ghost" href="#/deals">Назад</a>
           <span class="role-chip">${escapeHtml(roleLabel)}</span>
-          <a class="btn ghost" href="#/ai-manager/${deal.campaign.id}">AI Plan</a>
+          <a class="btn ghost" href="#/ai-manager/${deal.campaign.id}">AI-план</a>
         </nav>
 
         <section class="workflow-hero workflow-card tone-${tone}">
           <div class="workflow-hero-main">
-            <span class="workflow-kicker">Deal OS</span>
+            <span class="workflow-kicker">Сделка</span>
             <h1>${safe(deal.campaign.title)}</h1>
             <p>${safe(deal.blogger.name)} · ${safe(deal.deliverable)}</p>
             <div class="workflow-badges">
@@ -385,15 +385,15 @@ export const dealDetailView = {
           <div class="workflow-participants">
             ${participant({ label: "Закупщик", name: "Анна Морозова", meta: deal.campaign.brand, href: "#/company" })}
             ${participant({ label: "Блогер", name: deal.blogger.name, meta: `${deal.blogger.category || "Creator"} · ${deal.blogger.engagement || ""}`, href: `#/bloggers/${deal.blogger.id}` })}
-            ${participant({ label: "AI", name: "Deal Assistant", meta: "следит за рисками и дедлайнами", href: "#/ai" })}
+            ${participant({ label: "AI", name: "Помощник", meta: "следит за рисками и дедлайнами", href: "#/ai" })}
           </div>
         </section>
 
         <section class="workflow-card workflow-ai">
           <div class="workflow-section-head">
             <div>
-              <span class="workflow-kicker">AI Assistant</span>
-              <h2>Одна рекомендация</h2>
+              <span class="workflow-kicker">AI</span>
+              <h2>Подсказка</h2>
             </div>
             <button class="btn ghost" type="button" id="ai-check-report">Обновить</button>
           </div>

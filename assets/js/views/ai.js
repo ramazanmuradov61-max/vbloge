@@ -25,13 +25,13 @@ const recommendationCard = (item) => `
 `;
 
 export const aiView = {
-  title: "AI Home",
+  title: "AI-помощник",
   render() {
     const { campaigns, bloggers } = getState();
     const aiHistory = aiService.history();
     const recommendation = aiService.recommendations()[0] || aiCampaignService.overview()[0]?.recommendedAction || {
       title: "Проверьте активные сделки",
-      text: "AI не видит срочных рисков. Можно открыть Action Center и пройти следующий шаг.",
+      text: "Срочных рисков нет. Откройте центр действий и проверьте следующий шаг.",
       href: "#/notifications",
       action: "Открыть",
     };
@@ -43,14 +43,14 @@ export const aiView = {
         ${pageHeader({
           eyebrow: "AI",
           title: "Помощник vbloge",
-          lead: "AI подсказывает один следующий шаг и не перегружает экран.",
-          actions: `<a class="btn" href="#/ai-manager">Открыть AI Manager</a><a class="btn secondary" href="#/stats">Аналитика</a>`,
+          lead: "Одна подсказка на экран. Без лишнего шума.",
+          actions: `<a class="btn" href="#/ai-manager">Открыть AI-план</a><a class="btn secondary" href="#/stats">Аналитика</a>`,
         })}
 
         <section class="card pad ai-live-intro zero-ai-card">
           <div>
-            <span class="status green">AI online</span>
-            <h2>Главная рекомендация</h2>
+            <span class="status green">Готов помочь</span>
+            <h2>Что сделать дальше</h2>
           </div>
           ${recommendationCard(recommendation)}
         </section>
@@ -73,7 +73,7 @@ export const aiView = {
         </section>
 
         <section class="card pad">
-          <h2>Что сделать с AI</h2>
+          <h2>Быстрые сценарии</h2>
           <div class="grid cols-3 ai-scenarios">
             ${aiService.scenarios
               .slice(0, 6)
@@ -91,7 +91,7 @@ export const aiView = {
         </section>
 
         <details class="card pad zero-more-panel">
-          <summary>Дополнительно</summary>
+          <summary>Тонкая настройка</summary>
           <section class="split">
             <form class="form" id="ai-form">
               <div class="field">

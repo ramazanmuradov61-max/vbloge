@@ -12,9 +12,9 @@ export const authView = {
           <span class="brand-mark">v</span>
           <strong>vbloge</strong>
         </div>
-        <p class="eyebrow">Готовый продуктовый сценарий</p>
-        <h1>Операционная система для influencer-маркетинга</h1>
-        <p class="lead">Откройте рабочее пространство без регистрации: кампании, блогеры, сделки, чат, оплата, аналитика и AI-помощник уже связаны в один путь.</p>
+        <p class="eyebrow">vbloge</p>
+        <h1>Все рекламные интеграции в одном мобильном рабочем пространстве</h1>
+        <p class="lead">Создавайте кампании, выбирайте блогеров, ведите сделки, переписку, оплату и аналитику без регистрации.</p>
         <div class="button-row">
           <button class="btn" type="button" id="demo-login"><span class="tool-icon">→</span>Войти в демо</button>
           <button class="btn secondary" type="button" id="scenario-toggle"><span class="tool-icon">✦</span>Выбрать сценарий</button>

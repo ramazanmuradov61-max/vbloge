@@ -42,8 +42,8 @@ export const dealsView = {
       <section class="page deals-mobile-list">
         ${pageHeader({
           eyebrow: "Сделки",
-          title: "Рабочие пространства",
-          lead: "Каждая сделка показывает статус, срок, сумму и следующий шаг.",
+          title: "Сделки",
+          lead: "Откройте сделку и сразу увидите этап, ответственного и следующий шаг.",
           actions: `<a class="btn secondary" href="#/invitations"><span class="tool-icon">◇</span>Приглашения</a>`,
         })}
         <div class="stack-list">
@@ -52,7 +52,7 @@ export const dealsView = {
               ? deals.map(dealCard).join("")
               : smartEmptyState({
                   title: "Сделок пока нет",
-                  text: "Создайте кампанию и пригласите блогера. После принятия здесь появится Deal OS.",
+                  text: "Создайте кампанию и пригласите блогера. После принятия здесь появится сделка.",
                   action: { href: "#/campaigns", label: "Создать кампанию" },
                 })
           }

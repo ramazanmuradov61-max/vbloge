@@ -43,7 +43,7 @@ export const actionCenterService = {
       items.push(
         actionItem({
           id: `notification-${notification.id}`,
-          source: tone === "critical" ? "Critical" : tone === "important" ? "Important" : tone === "success" ? "Success" : "Info",
+          source: tone === "critical" ? "Срочно" : tone === "important" ? "Важно" : tone === "success" ? "Готово" : "Совет",
           title: notification.title,
           text: notification.text,
           href: notificationHref(notification),
@@ -61,7 +61,7 @@ export const actionCenterService = {
       items.push(
         actionItem({
           id: `deadline-${deadline.dealId || deadline.campaignId || index}`,
-          source: "Critical",
+          source: "Срочно",
           title: deadline.campaign ? `Дедлайн: ${deadline.campaign}` : deadline.title || "Дедлайн",
           text: deadline.action || "Проверьте следующий шаг.",
           href: deadline.href || (deadline.dealId ? `#/deals/${deadline.dealId}` : "#/calendar"),
@@ -79,7 +79,7 @@ export const actionCenterService = {
         items.push(
           actionItem({
             id: `invitation-${invitation.id}`,
-            source: "Important",
+            source: "Важно",
             title: isBlogger ? "Новое приглашение" : "Приглашение ожидает ответа",
             text: "Нужно принять решение по кампании.",
             href: "#/invitations",
@@ -101,11 +101,11 @@ export const actionCenterService = {
         items.push(
           actionItem({
             id: `workflow-${deal.id}`,
-            source: "Workflow",
+            source: "Сделка",
             title: workflow.current.title,
             text: `${deal.campaign?.title || deal.number}: следующий этап - ${workflow.next.title}.`,
             href: `#/deals/${deal.id}`,
-            action: "Открыть Deal OS",
+            action: "Открыть сделку",
             priority: 66 + workflow.currentIndex,
             tone: workflow.current.tone === "green" ? "success" : workflow.current.tone === "orange" ? "important" : "info",
             meta: `${workflow.progress}%`,
@@ -117,7 +117,7 @@ export const actionCenterService = {
       items.push(
         actionItem({
           id: `automation-${item.id}`,
-          source: "AI",
+          source: "Совет",
           title: item.title,
           text: item.text,
           href: item.href,
@@ -162,21 +162,21 @@ export const actionCenterService = {
     const items = this.list({ role, limit: 6 });
     const dynamic = items.slice(0, 2).map((item) => ({
       href: item.href,
-      icon: item.tone === "critical" ? "!" : item.source === "AI" ? "AI" : "✓",
+      icon: item.tone === "critical" ? "!" : item.source === "Совет" ? "AI" : "✓",
       title: item.action,
       text: item.title,
     }));
     const fallback = isBlogger
       ? [
-          { href: "#/campaigns", icon: "□", title: "Кампании", text: "подобрать РК" },
+          { href: "#/campaigns", icon: "□", title: "Кампании", text: "найти подходящую" },
           { href: "#/invitations", icon: "◇", title: "Приглашения", text: "ответить брендам" },
           { href: "#/chat", icon: "✉", title: "Чаты", text: "сообщения" },
           { href: "#/profile", icon: "◎", title: "Профиль", text: "обновить данные" },
         ]
       : [
-          { href: "#/campaigns", icon: "+", title: "Кампания", text: "создать РК" },
+          { href: "#/campaigns", icon: "+", title: "Кампания", text: "создать новую" },
           { href: "#/bloggers", icon: "◎", title: "Блогеры", text: "AI подбор" },
-          { href: "#/deals", icon: "✓", title: "Сделки", text: "workflow" },
+          { href: "#/deals", icon: "✓", title: "Сделки", text: "следующий шаг" },
           { href: "#/chat", icon: "✉", title: "Чаты", text: "ответы" },
         ];
     return [...dynamic, ...fallback].slice(0, 4);

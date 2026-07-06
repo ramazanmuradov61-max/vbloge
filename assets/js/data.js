@@ -30,7 +30,7 @@ export const navItems = [
   { path: "/chat", label: "Чат", icon: "✉" },
   { path: "/notifications", label: "Уведомления", icon: "!" },
   { path: "/ai", label: "AI", icon: "✦" },
-  { path: "/ai-manager", label: "AI Manager", icon: "◇" },
+  { path: "/ai-manager", label: "AI-план", icon: "◇" },
   { path: "/profile", label: "Профиль", icon: "●" },
   { path: "/company", label: "Компания", icon: "■" },
   { path: "/stats", label: "Аналитика", icon: "▥" },

@@ -22,7 +22,7 @@ const stages = ["Приглашение", "Ожидание оплаты", "Escr
 export const demoScenarios = [
   { id: "full-flow", title: "Demo №1: полный путь закупщика", description: "Кампания → приглашение → сделка → отчет → отзыв." },
   { id: "ai-match", title: "Demo №2: AI подбирает блогера", description: "AI объясняет match score, риски и следующий шаг." },
-  { id: "ai-manager", title: "Demo №3: AI Campaign Manager", description: "План, прогнозы, риски, дедлайны и действия." },
+  { id: "ai-manager", title: "Сценарий №3: AI-план кампании", description: "План, прогнозы, риски, дедлайны и действия." },
   { id: "deal-room", title: "Demo №4: Premium Deal Room", description: "Escrow, ТЗ, материалы, отчет, чат и документы." },
 ];
 
@@ -188,7 +188,7 @@ export const demoService = {
     if (id === "full-flow") {
       this.generateDemoData();
       setRole("buyer");
-      const campaign = createCampaign({ title: "Public Demo: запуск капсулы Urban Active", description: "Публичный сценарий: кампания, приглашение, сделка, отчет и отзыв.", budget: 520000, platform: "Shorts, Telegram", category: "Lifestyle", deadline: "2026-07-24", requirements: "Нативный сценарий, CTA, промокод, маркировка и отчет.", attachments: ["urban-active-brief.pdf"] });
+      const campaign = createCampaign({ title: "Urban Active: запуск капсулы", description: "Публичный сценарий: кампания, приглашение, сделка, отчет и отзыв.", budget: 520000, platform: "Shorts, Telegram", category: "Lifestyle", deadline: "2026-07-24", requirements: "Нативный сценарий, CTA, промокод, маркировка и отчет.", attachments: ["urban-active-brief.pdf"] });
       const bloggerId = getState().bloggers.find((item) => item.name === "Mila Fresh")?.id || getState().bloggers[0]?.id;
       const invitation = createInvitation({ bloggerId, campaignId: campaign.id });
       const deal = acceptInvitation(invitation.id);

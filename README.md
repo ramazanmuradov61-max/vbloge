@@ -60,6 +60,26 @@ What became faster:
 - AI no longer competes with the main workflow and exposes one recommendation first.
 - Deal, chat, campaign, and profile paths remain available through the existing navigation and internal links.
 
+## VBloge 7.1 - Clean Premium Mobile Design
+
+VBloge 7.1 is a mobile UX/UI cleanup pass. It does not change architecture, Store, Router, Service Layer, or business logic.
+
+What changed:
+
+- The interface was visually quieted: fewer heavy surfaces, softer shadows, tighter spacing, smaller headings, and calmer mobile cards.
+- Primary color moved to a restrained coral accent; blue is reserved for AI hints, green for success, amber for warnings, and red for risk.
+- Mobile navigation, buttons, role switcher, cards, tabs, status labels, inputs, quick actions, Action Center, AI blocks, Deal Room, and Dev Panel now share one visual language.
+- Home, campaigns, campaign detail, blogger profile, deals, Deal Room, chat, AI, AI plan, wallet, notifications, stats, auth, role choice, profile, and Dev Panel were reviewed for mobile clarity.
+- Visible technical wording was reduced in user-facing screens: `AI Manager`, `Deal OS`, `Public Demo`, `Store`, `Critical`, `Important`, `Success`, `Info`, `Workflow`, and `РК` are replaced with human product language where shown to users.
+- Long buttons, tabs, timeline stages, card titles, and recommendation text now wrap cleanly on 390px and 430px widths.
+
+QA notes:
+
+- Checked key routes on 390px and 430px through Chrome/Playwright.
+- No console errors were found during route checks.
+- No body or visual horizontal overflow was found after the final pass.
+- Reload and role switching were checked on mobile viewport.
+
 ## VBloge 5.0 - Smart Workflow & Automation
 
 Этап 5.0 переводит продукт из набора экранов в систему управления рекламными интеграциями. Архитектура, Router, Store и существующая бизнес-логика не менялись: новые сценарии работают поверх текущих данных.

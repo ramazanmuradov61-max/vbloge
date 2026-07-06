@@ -2,6 +2,9 @@ import { acceptInvitation, declineInvitation, enrichInvitation, getState } from 
 import { permissionService } from "../services/permissionService.js";
 import { emptyState, escapeHtml, money, pageHeader, statusBadge } from "../components/ui.js";
 
+const invitationStatus = (status) =>
+  status === "Pending" ? "Ожидает ответа" : status === "Accepted" ? "Принято" : status === "Declined" ? "Отклонено" : status;
+
 export const invitationsView = {
   title: "Приглашения",
   render() {
@@ -15,7 +18,7 @@ export const invitationsView = {
         ${pageHeader({
           eyebrow: "Кабинет блогера",
           title: "Приглашения",
-          lead: "Примите приглашение, чтобы автоматически создать сделку, чат и уведомление закупщику.",
+          lead: "Проверьте условия и выберите: принять или отклонить.",
         })}
         ${
           invitations.length
@@ -29,7 +32,7 @@ export const invitationsView = {
                             <h2>${escapeHtml(invitation.campaign.title)}</h2>
                             <p class="meta">${escapeHtml(invitation.campaign.brand)} · ${escapeHtml(invitation.blogger.name)}</p>
                           </div>
-                          ${statusBadge(invitation.status)}
+                          ${statusBadge(invitationStatus(invitation.status))}
                         </div>
                         <div class="list">
                           <div class="list-item"><span>Компания</span><strong>${escapeHtml(invitation.campaign.brand)}</strong></div>
