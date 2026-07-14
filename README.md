@@ -80,6 +80,26 @@ QA notes:
 - No body or visual horizontal overflow was found after the final pass.
 - Reload and role switching were checked on mobile viewport.
 
+## VBloge 8.0 - Cognitive UX & Mobile Simplification
+
+VBloge 8.0 reduces cognitive load without changing architecture, Store, Router, Service Layer, AI logic, routes, Deal OS mechanics, or business logic.
+
+What changed:
+
+- Campaign cards now show only the decision-critical data: title, status, deadline, budget, and next step.
+- Blogger cards now answer one question: whether the blogger is worth inviting. The list shows avatar, name, AI Match, price, ER, and one Invite CTA.
+- Campaign creation wizard now asks one question per step. Secondary fields are still present, but tucked into progressive disclosure.
+- Deal OS keeps all existing actions, but secondary sections like brief, report, participants, payment, and review are collapsed until needed.
+- Home, Action Center, AI hints, campaign cards, blogger cards, and Deal OS received tighter typography, shorter text, smaller vertical spacing, and calmer mobile density.
+- The campaign creation anchor was fixed so opening the wizard no longer changes the hash route unexpectedly.
+
+QA notes:
+
+- Checked key routes on 390px and 430px through Chrome/Playwright.
+- No console errors were found.
+- No body or visual horizontal overflow was found.
+- Campaign wizard was checked through all 5 steps, including saving to `vbloge.store` and transition to blogger selection.
+
 ## VBloge 5.0 - Smart Workflow & Automation
 
 Этап 5.0 переводит продукт из набора экранов в систему управления рекламными интеграциями. Архитектура, Router, Store и существующая бизнес-логика не менялись: новые сценарии работают поверх текущих данных.

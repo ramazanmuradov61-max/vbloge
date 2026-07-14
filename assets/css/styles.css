@@ -1899,6 +1899,276 @@ tr:last-child td {
   }
 }
 
+/* VBloge 8.0 - Cognitive UX simplification */
+.zero-friction-home .mobile-home-top .eyebrow {
+  display: none;
+}
+
+.zero-friction-home .mobile-home-top .lead {
+  max-width: 28rem;
+}
+
+.action-center-card small,
+.ai-day-advice small,
+.smart-hero p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.campaign-card-main {
+  align-items: start;
+}
+
+.campaign-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+}
+
+.campaign-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.campaign-card-meta > span:not(.status) {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 720;
+}
+
+.campaign-card-footer {
+  justify-content: space-between;
+}
+
+.campaign-card-footer > a {
+  color: var(--primary-strong);
+  font-size: 13px;
+  font-weight: 760;
+}
+
+.buyer-wizard-shell {
+  border-style: solid;
+}
+
+.buyer-wizard-shell > summary {
+  min-height: 44px;
+}
+
+.buyer-wizard {
+  gap: 12px;
+}
+
+.wizard-step {
+  gap: 10px;
+}
+
+.wizard-step h2 {
+  font-size: 19px;
+}
+
+.wizard-step > p {
+  display: none;
+}
+
+.wizard-more {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-soft);
+}
+
+.wizard-more summary {
+  min-height: 38px;
+  padding: 0 12px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 760;
+}
+
+.wizard-more .field,
+.wizard-more .grid {
+  margin: 10px;
+}
+
+.ai-campaign-preview {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.ai-campaign-preview article {
+  padding: 10px;
+}
+
+.ai-campaign-preview p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.buyer-recommendation-grid {
+  gap: 10px;
+}
+
+.blogger-recommendation-card {
+  gap: 10px;
+}
+
+.recommendation-body {
+  grid-template-columns: 64px 1fr;
+  align-items: center;
+}
+
+.recommendation-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.recommendation-footer {
+  justify-content: stretch;
+}
+
+.recommendation-footer .btn {
+  width: 100%;
+}
+
+.workflow-screen {
+  gap: 10px;
+}
+
+.workflow-current {
+  order: -2;
+}
+
+.workflow-hero {
+  order: -1;
+}
+
+.workflow-current p {
+  -webkit-line-clamp: 2;
+}
+
+.workflow-hero-main p,
+.workflow-feed-item p,
+.workflow-material small,
+.workflow-participant small {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.workflow-collapsible {
+  padding: 0;
+  overflow: hidden;
+}
+
+.workflow-collapsible > summary {
+  min-height: 46px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.workflow-collapsible > summary::after {
+  content: "+";
+  color: var(--muted);
+  font-weight: 760;
+}
+
+.workflow-collapsible[open] > summary::after {
+  content: "-";
+}
+
+.workflow-collapsible > *:not(summary) {
+  margin: 0 14px 14px;
+}
+
+.workflow-collapsible .form {
+  display: grid;
+  gap: 10px;
+}
+
+@media (max-width: 760px) {
+  .page {
+    gap: 10px;
+  }
+
+  .page-header h1,
+  .mobile-page-title h1,
+  .mobile-home-top h1,
+  .mobile-detail-hero h1,
+  .blogger-buy-card h1,
+  .workflow-hero h1 {
+    font-size: 22px;
+  }
+
+  .page-header .lead,
+  .mobile-page-title .lead,
+  .lead {
+    font-size: 13px;
+  }
+
+  .card.pad,
+  .workflow-card,
+  .campaign-card,
+  .blogger-recommendation-card,
+  .deal-list-card,
+  .smart-hero {
+    padding: 12px;
+  }
+
+  .zero-home-hero {
+    padding: 12px;
+  }
+
+  .mobile-section {
+    gap: 6px;
+  }
+
+  .section-title h2,
+  .workflow-section-head h2,
+  .card h2,
+  .mobile-section h2 {
+    font-size: 16px;
+  }
+
+  .campaign-card-meta {
+    align-items: flex-start;
+  }
+
+  .buyer-wizard .grid.cols-2,
+  .ai-campaign-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-hero-facts {
+    display: none;
+  }
+
+  .workflow-timeline {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .workflow-stage {
+    padding: 8px;
+  }
+
+  .workflow-feed-list {
+    max-height: 420px;
+    overflow: auto;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   :root[data-theme="dark"] {
     --bg: #0f172a;

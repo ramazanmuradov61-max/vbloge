@@ -25,26 +25,25 @@ const showSuccessToast = (text) => {
 
 const campaignCard = (campaign) => {
   const workflow = workflowEngine.campaign(campaign);
+  const nextStep = nextStepLabel(campaign);
   return `
     <article class="campaign-card buyer-campaign-card">
       <a href="#/campaigns/${campaign.id}" class="campaign-card-main">
         <span class="campaign-card-icon" aria-hidden="true">▣</span>
         <span>
           <strong>${escapeHtml(productText(campaign.title))}</strong>
-          <small>${escapeHtml(campaign.brand || "vbloge")} · ${escapeHtml(campaign.category || "Категория")}</small>
+          <small>${escapeHtml(campaign.deadline || campaign.dates || "Без срока")} · ${money(campaign.budget)}</small>
         </span>
       </a>
       <div class="campaign-card-meta">
         ${statusBadge(campaignStatusLabel(campaign))}
-        <span>${money(campaign.budget)}</span>
-        <span>${escapeHtml(campaign.deadline || campaign.dates || "Без срока")}</span>
+        <span>${escapeHtml(nextStep)}</span>
       </div>
       <div class="campaign-workflow-mini" aria-label="Прогресс кампании">
         <i style="width: ${workflow?.progress || 12}%"></i>
       </div>
       <div class="campaign-card-footer">
-        <span>${campaign.bloggerIds?.length || 0} блогеров</span>
-        <a href="#/campaigns/${campaign.id}">${escapeHtml(nextStepLabel(campaign))}</a>
+        <a href="#/campaigns/${campaign.id}">Продолжить</a>
         <button class="btn secondary compact" type="button" data-fav-campaign="${escapeHtml(campaign.id)}" aria-label="Избранное">${isFavorite("campaigns", campaign.id) ? "★" : "☆"}</button>
       </div>
     </article>
@@ -77,73 +76,75 @@ const createWizard = () => `
 
       <section class="wizard-step" data-wizard-step="1">
         <h2>Что хотите рекламировать?</h2>
-        <p>Опишите продукт коротко. Остальное AI поможет собрать в понятную кампанию.</p>
         <div class="field">
           <label for="campaign-title">Название</label>
           <input id="campaign-title" name="title" value="Nike Air Max — летний дроп" required />
         </div>
-        <div class="field">
-          <label for="campaign-description">Описание</label>
-          <textarea id="campaign-description" name="description" required>Нативно рассказать о новой линейке кроссовок и привести аудиторию на посадочную страницу.</textarea>
-        </div>
-        <div class="grid cols-2">
+        <details class="wizard-more">
+          <summary>Уточнить детали</summary>
           <div class="field">
-            <label for="campaign-category">Категория</label>
-            <input id="campaign-category" name="category" value="Lifestyle" required />
+            <label for="campaign-description">Короткое описание</label>
+            <textarea id="campaign-description" name="description" required>Нативно рассказать о новой линейке кроссовок и привести аудиторию на посадочную страницу.</textarea>
           </div>
-          <div class="field">
-            <label for="campaign-platform">Площадки</label>
-            <input id="campaign-platform" name="platform" value="Telegram, Shorts" required />
+          <div class="grid cols-2">
+            <div class="field">
+              <label for="campaign-category">Категория</label>
+              <input id="campaign-category" name="category" value="Lifestyle" required />
+            </div>
+            <div class="field">
+              <label for="campaign-platform">Площадки</label>
+              <input id="campaign-platform" name="platform" value="Telegram, Shorts" required />
+            </div>
           </div>
-        </div>
+        </details>
       </section>
 
       <section class="wizard-step" data-wizard-step="2" hidden>
         <h2>Какой результат хотите получить?</h2>
-        <p>Сформулируйте ожидаемое действие аудитории и KPI.</p>
         <div class="field">
           <label for="campaign-goal">Результат</label>
           <textarea id="campaign-goal" name="goal" required>Получить узнаваемость дропа, переходы на сайт и первые продажи по промокоду.</textarea>
         </div>
-        <div class="field">
-          <label for="campaign-requirements">Требования</label>
-          <textarea id="campaign-requirements" name="requirements" required>Сценарий, маркировка рекламы, ссылка, промокод, отчет по охватам и кликам.</textarea>
-        </div>
-        <div class="field">
-          <label for="campaign-deadline">Дедлайн</label>
-          <input id="campaign-deadline" name="deadline" type="date" value="2026-08-15" required />
-        </div>
+        <details class="wizard-more">
+          <summary>Требования и срок</summary>
+          <div class="field">
+            <label for="campaign-requirements">Требования</label>
+            <textarea id="campaign-requirements" name="requirements" required>Сценарий, маркировка рекламы, ссылка, промокод, отчет по охватам и кликам.</textarea>
+          </div>
+          <div class="field">
+            <label for="campaign-deadline">Дедлайн</label>
+            <input id="campaign-deadline" name="deadline" type="date" value="2026-08-15" required />
+          </div>
+        </details>
       </section>
 
       <section class="wizard-step" data-wizard-step="3" hidden>
-        <h2>Бюджет и материалы</h2>
-        <p>Укажите общий бюджет. AI предложит, как распределить его между блогерами.</p>
+        <h2>Какой бюджет?</h2>
         <div class="field">
           <label for="campaign-budget">Бюджет</label>
           <input id="campaign-budget" name="budget" type="number" min="0" value="350000" required />
         </div>
-        <div class="field">
-          <label for="campaign-attachments">Вложения</label>
-          <input id="campaign-attachments" name="attachments" type="file" multiple />
-        </div>
+        <details class="wizard-more">
+          <summary>Добавить материалы</summary>
+          <div class="field">
+            <label for="campaign-attachments">Вложения</label>
+            <input id="campaign-attachments" name="attachments" type="file" multiple />
+          </div>
+        </details>
       </section>
 
       <section class="wizard-step" data-wizard-step="4" hidden>
         <h2>AI собрал кампанию</h2>
-        <p>Проверьте блоки. После создания система сразу предложит блогеров.</p>
         <div class="ai-campaign-preview">
           <article><span>Название</span><strong data-ai-title></strong></article>
           <article><span>ТЗ</span><p data-ai-brief></p></article>
-          <article><span>Форматы</span><p data-ai-formats></p></article>
           <article><span>KPI</span><p data-ai-kpi></p></article>
-          <article><span>Риски</span><p>Сжатый дедлайн и широкий охват. AI рекомендует пригласить минимум 4 блогеров.</p></article>
           <article><span>Блогеры</span><p>Mila Fresh, Fit Vika, City Food — высокий match по аудитории и формату.</p></article>
         </div>
       </section>
 
       <section class="wizard-step" data-wizard-step="5" hidden>
-        <h2>Подтверждение</h2>
-        <p>После создания vbloge сразу откроет подбор блогеров.</p>
+        <h2>Запустить?</h2>
         <div class="buyer-confirm-card">
           <strong data-confirm-title></strong>
           <span data-confirm-budget></span>
@@ -203,8 +204,10 @@ export const campaignsView = {
     const form = document.querySelector("#campaign-form");
     if (form) {
       document.querySelectorAll('a[href="#campaign-create"]').forEach((link) => {
-        link.addEventListener("click", () => {
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
           document.querySelector("#campaign-create")?.setAttribute("open", "");
+          document.querySelector("#campaign-create")?.scrollIntoView({ behavior: "smooth", block: "start" });
         });
       });
       let step = 1;
@@ -228,7 +231,6 @@ export const campaignsView = {
 
         form.querySelector("[data-ai-title]").textContent = title;
         form.querySelector("[data-ai-brief]").textContent = `${description} Цель: ${goal}.`;
-        form.querySelector("[data-ai-formats]").textContent = `${platform}: нативная интеграция, короткий обзор, CTA с промокодом.`;
         form.querySelector("[data-ai-kpi]").textContent = `Бюджет ${money(budget)}: охват, клики, ER и отчет по публикации.`;
         form.querySelector("[data-confirm-title]").textContent = title;
         form.querySelector("[data-confirm-budget]").textContent = `${platform} · ${money(budget)}`;

@@ -332,12 +332,10 @@ export const dealDetailView = {
           </details>
         </section>
 
-        <section class="workflow-card">
+        <details class="workflow-card workflow-collapsible">
+          <summary>ТЗ</summary>
           <div class="workflow-section-head">
-            <div>
-              <span class="workflow-kicker">ТЗ</span>
-              <h2>Коротко по заданию</h2>
-            </div>
+            <div><h2>Коротко по заданию</h2></div>
             <a href="#/campaigns/${deal.campaign.id}">Кампания</a>
           </div>
           <div class="workflow-brief-grid">
@@ -348,14 +346,12 @@ export const dealDetailView = {
             ${briefLine("Ограничения", brief?.restrictions)}
             ${briefLine("Формат отчета", brief?.report)}
           </div>
-        </section>
+        </details>
 
-        <section class="workflow-card" id="workflow-report">
+        <details class="workflow-card workflow-collapsible" id="workflow-report">
+          <summary>Отчет</summary>
           <div class="workflow-section-head">
-            <div>
-              <span class="workflow-kicker">Отчет</span>
-              <h2>Публикация и метрики</h2>
-            </div>
+            <div><h2>Публикация и метрики</h2></div>
             ${statusBadge(report.reviewStatus)}
           </div>
           <form class="form workflow-report-form" id="deal-report-form">
@@ -373,21 +369,16 @@ export const dealDetailView = {
               <button class="btn ghost" type="button" data-report-action="revisions" ${permissionService.disabledAttr(canRequestChanges)}>Правки</button>
             </div>
           </form>
-        </section>
+        </details>
 
-        <section class="workflow-card">
-          <div class="workflow-section-head">
-            <div>
-              <span class="workflow-kicker">Участники</span>
-              <h2>Кто отвечает</h2>
-            </div>
-          </div>
+        <details class="workflow-card workflow-collapsible">
+          <summary>Участники</summary>
           <div class="workflow-participants">
             ${participant({ label: "Закупщик", name: "Анна Морозова", meta: deal.campaign.brand, href: "#/company" })}
             ${participant({ label: "Блогер", name: deal.blogger.name, meta: `${deal.blogger.category || "Creator"} · ${deal.blogger.engagement || ""}`, href: `#/bloggers/${deal.blogger.id}` })}
             ${participant({ label: "AI", name: "Помощник", meta: "следит за рисками и дедлайнами", href: "#/ai" })}
           </div>
-        </section>
+        </details>
 
         <section class="workflow-card workflow-ai">
           <div class="workflow-section-head">
@@ -402,12 +393,10 @@ export const dealDetailView = {
           <button class="btn secondary" type="button" id="ai-generate-message">Сгенерировать сообщение</button>
         </section>
 
-        <section class="workflow-card workflow-finance">
+        <details class="workflow-card workflow-finance workflow-collapsible">
+          <summary>Оплата</summary>
           <div class="workflow-section-head">
-            <div>
-              <span class="workflow-kicker">Оплата</span>
-              <h2>Escrow</h2>
-            </div>
+            <div><h2>Escrow</h2></div>
             ${statusBadge(escrow.paymentStatus)}
           </div>
           <div class="workflow-finance-grid">
@@ -421,30 +410,27 @@ export const dealDetailView = {
             <button class="btn ghost" type="button" data-escrow-action="revisions" ${permissionService.disabledAttr(canRequestChanges)}>Правки</button>
             <button class="btn ghost" type="button" data-escrow-action="release" ${permissionService.disabledAttr(canManageEscrow)}>Выплатить</button>
           </div>
-        </section>
+        </details>
 
-        <form class="workflow-card form" id="review-form">
-          <div class="workflow-section-head">
-            <div>
-              <span class="workflow-kicker">Отзывы</span>
-              <h2>Финальная оценка</h2>
+        <details class="workflow-card workflow-collapsible">
+          <summary>Отзыв</summary>
+          <form class="form" id="review-form">
+            <div class="field">
+              <label for="deal-rating">Оценка</label>
+              <select id="deal-rating" name="rating">
+                <option value="5">5 · отлично</option>
+                <option value="4">4 · хорошо</option>
+                <option value="3">3 · нормально</option>
+                <option value="2">2 · есть проблемы</option>
+                <option value="1">1 · плохо</option>
+              </select>
             </div>
-          </div>
-          <div class="field">
-            <label for="deal-rating">Оценка</label>
-            <select id="deal-rating" name="rating">
-              <option value="5">5 · отлично</option>
-              <option value="4">4 · хорошо</option>
-              <option value="3">3 · нормально</option>
-              <option value="2">2 · есть проблемы</option>
-              <option value="1">1 · плохо</option>
-            </select>
-          </div>
-          <div class="field"><label for="deal-review">Комментарий</label><textarea id="deal-review" name="review">${safe(deal.review, "")}</textarea></div>
-          <div class="field"><label for="deal-review-tags">Теги</label><input id="deal-review-tags" name="tags" value="${isBuyer ? "быстро отвечает, качественный контент, соблюдает сроки" : "четкое ТЗ, быстрая оплата, профессионально"}" /></div>
-          <button class="btn secondary" type="submit" ${permissionService.disabledAttr(canReview)}>Сохранить отзыв</button>
-          <div class="workflow-reviews">${reviewList(dealReviews)}</div>
-        </form>
+            <div class="field"><label for="deal-review">Комментарий</label><textarea id="deal-review" name="review">${safe(deal.review, "")}</textarea></div>
+            <div class="field"><label for="deal-review-tags">Теги</label><input id="deal-review-tags" name="tags" value="${isBuyer ? "быстро отвечает, качественный контент, соблюдает сроки" : "четкое ТЗ, быстрая оплата, профессионально"}" /></div>
+            <button class="btn secondary" type="submit" ${permissionService.disabledAttr(canReview)}>Сохранить отзыв</button>
+            <div class="workflow-reviews">${reviewList(dealReviews)}</div>
+          </form>
+        </details>
       </section>
     `;
   },

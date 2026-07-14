@@ -1,6 +1,6 @@
 import { scoreService } from "../services/scoreService.js";
 import { getState, isFavorite, toggleFavorite } from "../store.js";
-import { avatar, escapeHtml, money, pageHeader, smartEmptyState, statusBadge } from "../components/ui.js";
+import { avatar, escapeHtml, money, pageHeader, smartEmptyState } from "../components/ui.js";
 
 const productText = (value) =>
   String(value || "")
@@ -11,8 +11,6 @@ const productText = (value) =>
     .replace(/рк/g, "кампания");
 
 const parseMoney = (value) => Number(String(value || "0").replace(/[^\d]/g, "")) || 0;
-const parseReach = (value) => String(value || "0").replace("тыс.", "k").replace("млн", "m");
-
 const activeCampaign = () => {
   const { campaigns } = getState();
   return campaigns.find((campaign) => !/заверш/i.test(campaign.status || "")) || campaigns[0];
@@ -23,17 +21,6 @@ const matchFor = (blogger, campaign) => {
   const categoryBonus = campaign?.category && blogger.category === campaign.category ? 8 : 3;
   const channelBonus = (blogger.channels || []).some((channel) => String(campaign?.platform || "").toLowerCase().includes(channel.toLowerCase())) ? 7 : 2;
   return Math.min(99, Math.round(score * 0.82 + categoryBonus + channelBonus));
-};
-
-const similarCampaigns = (blogger) => {
-  const { campaigns } = getState();
-  const items = campaigns.filter((campaign) => campaign.category === blogger.category || (campaign.bloggerIds || []).includes(blogger.id)).slice(0, 2);
-  return items.length ? items.map((campaign) => productText(campaign.title)).join(", ") : "Запуски в похожей категории";
-};
-
-const recommendationReason = (blogger, campaign) => {
-  const platform = blogger.channels?.[0] || campaign?.platform || "соцсети";
-  return `${blogger.category} и ${platform} совпадают с задачей кампании. Аудитория подходит для быстрого теста гипотезы.`;
 };
 
 export const bloggersView = {
@@ -47,7 +34,7 @@ export const bloggersView = {
         ${pageHeader({
           eyebrow: isBuyer ? "AI подбор" : "Каталог",
           title: isBuyer ? "Кого пригласить" : "Блогеры",
-          lead: isBuyer ? `Рекомендации под кампанию: ${escapeHtml(productText(campaign?.title || "активная кампания"))}.` : "Карточки авторов связаны с кампаниями, сделками, чатами и избранным.",
+          lead: isBuyer ? `Короткий список под кампанию: ${escapeHtml(productText(campaign?.title || "активная кампания"))}.` : "Выберите автора и откройте профиль.",
           actions: `<a class="btn secondary" href="#/favorites"><span class="tool-icon">★</span>Избранное</a>`,
         })}
 
@@ -69,7 +56,6 @@ export const bloggersView = {
             bloggers.length
               ? bloggers
                   .map((blogger) => {
-                    const score = scoreService.getBloggerScore(blogger);
                     const match = matchFor(blogger, campaign);
                     return `
                       <article class="blogger-recommendation-card clickable-card">
@@ -92,18 +78,11 @@ export const bloggersView = {
                           <div class="recommendation-metrics">
                             <span><small>Цена</small><strong>${money(parseMoney(blogger.price))}</strong></span>
                             <span><small>ER</small><strong>${escapeHtml(blogger.engagement)}</strong></span>
-                            <span><small>Охват</small><strong>${escapeHtml(parseReach(blogger.avgReach))}</strong></span>
-                          </div>
-                          <p>${escapeHtml(recommendationReason(blogger, campaign))}</p>
-                          <div class="similar-line">
-                            <span>Похожие кампании</span>
-                            <strong>${escapeHtml(similarCampaigns(blogger))}</strong>
                           </div>
                         </a>
 
                         <div class="recommendation-footer">
-                          ${statusBadge(`AI Score ${score.score}`)}
-                          <a class="btn secondary" href="#/bloggers/${blogger.id}">Пригласить</a>
+                          <a class="btn" href="#/bloggers/${blogger.id}">Пригласить</a>
                         </div>
                       </article>
                     `;
