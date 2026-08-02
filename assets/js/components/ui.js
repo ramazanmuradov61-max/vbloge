@@ -1,3 +1,5 @@
+import { icon } from "./icons.js";
+
 export const escapeHtml = (value = "") =>
   String(value)
     .replaceAll("&", "&amp;")
@@ -33,11 +35,12 @@ export const statusColor = (status = "") => {
 
 export const statusBadge = (status) => `<span class="status ${statusColor(status)}">${escapeHtml(status)}</span>`;
 
-export const button = ({ label, href = "", variant = "primary", type = "button", attrs = "" }) => {
+export const button = ({ label, href = "", variant = "primary", type = "button", attrs = "", iconName = "" }) => {
   const classes = ["btn", variant !== "primary" ? variant : ""].filter(Boolean).join(" ");
+  const content = `${iconName ? icon(iconName, { size: 18 }) : ""}<span>${escapeHtml(label)}</span>`;
   return href
-    ? `<a class="${classes}" href="${href}" ${attrs}>${escapeHtml(label)}</a>`
-    : `<button class="${classes}" type="${type}" ${attrs}>${escapeHtml(label)}</button>`;
+    ? `<a class="${classes}" href="${href}" ${attrs}>${content}</a>`
+    : `<button class="${classes}" type="${type}" ${attrs}>${content}</button>`;
 };
 
 export const chip = (label, tone = "blue") => `<span class="chip ${tone}">${escapeHtml(label)}</span>`;
@@ -113,12 +116,12 @@ export const kpiCard = ({ label, value, meta = "", tone = "blue" }) => `
 
 export const pageHeader = ({ eyebrow, title, lead, actions = "" }) => `
   <header class="page-header">
-    <div>
-      ${eyebrow ? `<p class="eyebrow">${escapeHtml(eyebrow)}</p>` : ""}
+    <div class="page-header-copy">
+      ${eyebrow && eyebrow !== title ? `<p class="page-context">${escapeHtml(eyebrow)}</p>` : ""}
       <h1>${escapeHtml(title)}</h1>
       ${lead ? `<p class="lead">${escapeHtml(lead)}</p>` : ""}
     </div>
-    ${actions ? `<div class="button-row">${actions}</div>` : ""}
+    ${actions ? `<div class="button-row page-header-actions">${actions}</div>` : ""}
   </header>
 `;
 
@@ -185,7 +188,7 @@ export const emptyState = (text) => `<div class="empty">${escapeHtml(text)}</div
 
 export const smartEmptyState = ({ title, text = "", action = null }) => `
   <div class="smart-state empty">
-    <span class="state-icon" aria-hidden="true">□</span>
+    <span class="state-icon" aria-hidden="true">${icon("info", { size: 20 })}</span>
     <strong>${escapeHtml(title)}</strong>
     ${text ? `<small>${escapeHtml(text)}</small>` : ""}
     ${action?.href ? `<a class="btn secondary compact" href="${escapeHtml(action.href)}">${escapeHtml(action.label || "Открыть")}</a>` : ""}
@@ -194,7 +197,7 @@ export const smartEmptyState = ({ title, text = "", action = null }) => `
 
 export const smartErrorState = ({ title = "Не удалось выполнить действие", text = "", action = null }) => `
   <div class="smart-state error-state">
-    <span class="state-icon" aria-hidden="true">!</span>
+    <span class="state-icon" aria-hidden="true">${icon("alert", { size: 20 })}</span>
     <strong>${escapeHtml(title)}</strong>
     ${text ? `<small>${escapeHtml(text)}</small>` : ""}
     ${action?.href ? `<a class="btn secondary compact" href="${escapeHtml(action.href)}">${escapeHtml(action.label || "Повторить")}</a>` : ""}
@@ -217,14 +220,14 @@ export const loadingState = (text = "Загрузка данных") => `
 
 export const successState = (text = "Готово") => `
   <div class="state-card success-state">
-    <span class="state-icon" aria-hidden="true">✓</span>
+    <span class="state-icon" aria-hidden="true">${icon("check", { size: 20 })}</span>
     <strong>${escapeHtml(text)}</strong>
   </div>
 `;
 
 export const errorState = (text = "Не удалось выполнить действие") => `
   <div class="state-card error-state">
-    <span class="state-icon" aria-hidden="true">!</span>
+    <span class="state-icon" aria-hidden="true">${icon("alert", { size: 20 })}</span>
     <strong>${escapeHtml(text)}</strong>
   </div>
 `;

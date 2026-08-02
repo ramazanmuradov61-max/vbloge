@@ -1,6 +1,7 @@
 import { workflowEngine } from "../services/workflowEngine.js";
 import { createCampaign, getState, isFavorite, toggleFavorite } from "../store.js";
 import { escapeHtml, money, smartEmptyState, statusBadge } from "../components/ui.js";
+import { icon } from "../components/icons.js";
 
 const productText = (value) =>
   String(value || "")
@@ -18,7 +19,7 @@ const showSuccessToast = (text) => {
   current?.remove();
   const toast = document.createElement("div");
   toast.className = "buyer-success-toast";
-  toast.textContent = `✓ ${text}`;
+  toast.textContent = text;
   document.body.append(toast);
   window.setTimeout(() => toast.remove(), 1800);
 };
@@ -29,38 +30,40 @@ const campaignCard = (campaign) => {
   return `
     <article class="campaign-card buyer-campaign-card">
       <a href="#/campaigns/${campaign.id}" class="campaign-card-main">
-        <span class="campaign-card-icon" aria-hidden="true">▣</span>
         <span>
           <strong>${escapeHtml(productText(campaign.title))}</strong>
           <small>${escapeHtml(campaign.deadline || campaign.dates || "Без срока")} · ${money(campaign.budget)}</small>
         </span>
+        ${statusBadge(campaignStatusLabel(campaign))}
       </a>
       <div class="campaign-card-meta">
-        ${statusBadge(campaignStatusLabel(campaign))}
-        <span>${escapeHtml(nextStep)}</span>
+        <span><small>Следующий шаг</small><strong>${escapeHtml(nextStep)}</strong></span>
+        ${icon("chevron", { size: 18 })}
       </div>
       <div class="campaign-workflow-mini" aria-label="Прогресс кампании">
         <i style="width: ${workflow?.progress || 12}%"></i>
       </div>
       <div class="campaign-card-footer">
         <a href="#/campaigns/${campaign.id}">Продолжить</a>
-        <button class="btn secondary compact" type="button" data-fav-campaign="${escapeHtml(campaign.id)}" aria-label="Избранное">${isFavorite("campaigns", campaign.id) ? "★" : "☆"}</button>
+        <button class="icon-button" type="button" data-fav-campaign="${escapeHtml(campaign.id)}" aria-label="${isFavorite("campaigns", campaign.id) ? "Убрать из избранного" : "Добавить в избранное"}">${icon("favorite", { size: 17 })}</button>
       </div>
     </article>
   `;
 };
 
 const smartHero = ({ isBlogger, campaigns }) => {
+  if (isBlogger) return "";
   const active = campaigns.find((campaign) => workflowEngine.campaign(campaign)?.currentIndex < 7) || campaigns[0];
   if (!active) return "";
   return `
     <section class="smart-hero buyer-journey-hero">
+      <span class="smart-hero-icon" aria-hidden="true">${icon("campaigns", { size: 21 })}</span>
       <div>
-        <span>${isBlogger ? "Подбор" : "Следующий шаг"}</span>
-        <strong>${isBlogger ? "Выберите кампанию, которая подходит вашему календарю." : `${escapeHtml(productText(active.title))}: ${escapeHtml(nextStepLabel(active))}.`}</strong>
-        <p>${isBlogger ? "Откройте детали, проверьте бюджет и сроки перед откликом." : `Статус: ${escapeHtml(campaignStatusLabel(active))}. Система подскажет, что сделать дальше.`}</p>
+        <span>Продолжить работу</span>
+        <strong>${escapeHtml(productText(active.title))}</strong>
+        <p>${escapeHtml(nextStepLabel(active))}</p>
       </div>
-      <a class="btn secondary" href="#/campaigns/${active.id}">${isBlogger ? "Открыть" : "Продолжить"}</a>
+      <a class="btn" href="#/campaigns/${active.id}">Продолжить${icon("arrow", { size: 18 })}</a>
     </section>
   `;
 };
@@ -170,18 +173,17 @@ export const campaignsView = {
       <section class="page mobile-campaigns buyer-journey-page">
         <header class="mobile-page-title">
           <div>
-            <p class="eyebrow">Кампании</p>
             <h1>${isBlogger ? "Доступные кампании" : "Мои кампании"}</h1>
-            <p class="lead">${isBlogger ? "Выберите подходящую кампанию и откройте детали." : "Создайте кампанию, подберите блогеров и доведите сделку до отчета."}</p>
+            <p class="lead">${isBlogger ? "Выберите кампанию по бюджету и сроку." : `${campaigns.length} кампаний · все следующие шаги на виду`}</p>
           </div>
-          ${isBlogger ? `<a class="btn secondary" href="#/favorites">Избранное</a>` : `<a class="btn" href="#campaign-create">+ Кампания</a>`}
+          ${isBlogger ? "" : `<a class="btn" href="#campaign-create">${icon("plus", { size: 18 })}<span>Создать</span></a>`}
         </header>
 
         ${smartHero({ isBlogger, campaigns })}
 
         <section class="mobile-filter-bar buyer-search-strip">
           <label class="mobile-inline-search">
-            <span aria-hidden="true">⌕</span>
+            <span aria-hidden="true">${icon("search", { size: 19 })}</span>
             <input type="search" placeholder="Найти кампанию" aria-label="Найти кампанию" />
           </label>
           <div class="search-tools">
@@ -203,6 +205,11 @@ export const campaignsView = {
   mount({ router }) {
     const form = document.querySelector("#campaign-form");
     if (form) {
+      if (window.sessionStorage.getItem("vbloge.openCampaignCreate") === "1") {
+        window.sessionStorage.removeItem("vbloge.openCampaignCreate");
+        document.querySelector("#campaign-create")?.setAttribute("open", "");
+        requestAnimationFrame(() => document.querySelector("#campaign-create")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+      }
       document.querySelectorAll('a[href="#campaign-create"]').forEach((link) => {
         link.addEventListener("click", (event) => {
           event.preventDefault();

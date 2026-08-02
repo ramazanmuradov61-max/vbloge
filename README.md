@@ -6,6 +6,16 @@ Product strategy document: [docs/VBLOGE_BLUEPRINT_2026.md](docs/VBLOGE_BLUEPRINT
 
 The blueprint describes vbloge as a mobile operating system for influencer marketing: CRM, marketplace, AI campaign manager, Deal OS, chat, calendar, payments, analytics, and documents in one product.
 
+## Unified Mobile Product Experience
+
+The current interface pass keeps the existing Store, Router, Service Layer, permissions, and workflows while rebuilding the presentation as one mobile product system.
+
+- Five stable primary destinations: Home, Campaigns, Deals, Chats, and Profile.
+- One visual language for navigation, icons, buttons, cards, statuses, disclosures, empty states, and contextual headers.
+- Home, campaign creation, blogger selection, Deal OS, chat, AI planning, finance, analytics, company, calendar, invitations, and favorites prioritize one next action.
+- Secondary information is progressively disclosed instead of competing with the current task.
+- AI appears as one contextual recommendation and remains available through campaign and deal workflows.
+
 ## Buyer Journey 2026
 
 VBloge 6.1 focuses on the buyer path without changing Store, Router, Service Layer, or existing business logic.

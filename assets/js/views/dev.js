@@ -76,7 +76,7 @@ export const devView = {
             <textarea class="store-transfer" id="store-transfer" spellcheck="false" placeholder="JSON появится здесь после экспорта или вставьте JSON для импорта"></textarea>
           </article>
           <article class="card pad">
-            <h2>Release controls</h2>
+              <h2>Контроль версии</h2>
             <div class="stack-list">
               <a class="compact-card" href="#/about"><span><strong>О проекте</strong><small>Версия, build, roadmap, changelog и состояние MVP.</small></span></a>
               <a class="compact-card" href="#/ai-manager"><span><strong>AI-план</strong><small>Подсказки по кампаниям и сделкам.</small></span></a>
@@ -85,7 +85,7 @@ export const devView = {
           </article>
         </section>
         <section class="card pad">
-          <h2>Permission checks</h2>
+          <h2>Проверка доступов</h2>
           <div class="grid cols-4">
             <div class="compact-card"><span><strong>canInvite</strong><small>${permissionService.canInvite()}</small></span></div>
             <div class="compact-card"><span><strong>canPay</strong><small>${permissionService.canPay(sampleDeal)}</small></span></div>
@@ -104,7 +104,7 @@ export const devView = {
           </div>
         </section>
         <section class="card pad">
-          <h2>JSON состояния</h2>
+          <h2>Данные приложения</h2>
           <pre class="store-json">${formatStore()}</pre>
         </section>
       </section>

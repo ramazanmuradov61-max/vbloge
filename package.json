@@ -2,7 +2,7 @@
   "name": "vbloge",
   "version": "1.0.0",
   "private": true,
-  "description": "Static modular SPA for vbloge influencer marketing demo.",
+  "description": "Mobile operating system for influencer marketing workflows.",
   "type": "module",
   "scripts": {
     "build": "echo \"Static app: no build step\"",

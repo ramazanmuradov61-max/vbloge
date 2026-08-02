@@ -1,6 +1,7 @@
 import { getBlogger, getCampaign, getDealsForCampaign, isFavorite, toggleFavorite } from "../store.js";
 import { aiCampaignService } from "../services/aiCampaignService.js";
 import { emptyState, escapeHtml, money, progressBar, statusBadge } from "../components/ui.js";
+import { icon } from "../components/icons.js";
 
 const productText = (value) =>
   String(value || "")
@@ -29,56 +30,46 @@ export const campaignDetailView = {
     const favorite = isFavorite("campaigns", campaign.id);
     const aiBrief = aiCampaignService.improveBrief(campaign.id);
     const aiPlan = aiCampaignService.getPlan(campaign.id);
+    const primaryHref = primaryDeal ? `#/deals/${primaryDeal.id}` : "#/bloggers";
+    const primaryLabel = primaryDeal ? "Продолжить сделку" : "Пригласить блогера";
 
     return `
-      <section class="page campaign-detail-mobile">
-        <header class="mobile-detail-hero">
-          <a class="back-link" href="#/campaigns">← Кампании</a>
-          <div class="mobile-detail-heading">
-            <span class="campaign-card-icon" aria-hidden="true">▣</span>
-            <div>
-              <p class="eyebrow">${escapeHtml(campaign.brand)}</p>
-              <h1>${escapeHtml(productText(campaign.title))}</h1>
-              ${statusBadge(campaign.status)}
-            </div>
+      <section class="page campaign-detail-mobile product-detail-page">
+        <header class="mobile-detail-hero product-detail-hero">
+          <div class="detail-hero-toolbar">
+            <a class="back-link" href="#/campaigns">${icon("back", { size: 18 })}Кампании</a>
+            <button class="icon-button ${favorite ? "selected" : ""}" type="button" id="favorite-campaign" aria-label="${favorite ? "Убрать из избранного" : "Добавить в избранное"}">${icon("favorite", { size: 18 })}</button>
           </div>
-          <div class="mobile-summary-card compact">
+          <div class="mobile-detail-heading">
+            <div>
+              <p class="page-context">${escapeHtml(campaign.brand)}</p>
+              <h1>${escapeHtml(productText(campaign.title))}</h1>
+            </div>
+            ${statusBadge(campaign.status)}
+          </div>
+          <div class="detail-facts">
             <div><span>Бюджет</span><strong>${money(campaign.budget)}</strong></div>
             <div><span>Дедлайн</span><strong>${escapeHtml(campaign.deadline || "Не задан")}</strong></div>
-            <div><span>Блогеры</span><strong>${bloggers.length}</strong></div>
             <div><span>Прогресс</span><strong>${campaign.progress || 0}%</strong></div>
           </div>
-          <p class="next-step">${escapeHtml(aiPlan.nextBestStep || "Пригласите блогера и согласуйте ТЗ.")}</p>
-          <div class="button-row">
-            <a class="btn" href="#/bloggers">Пригласить блогера</a>
-            ${primaryDeal ? `<a class="btn secondary" href="#/deals/${primaryDeal.id}">Открыть сделку</a>` : ""}
-            <button class="btn secondary" type="button" id="favorite-campaign">${favorite ? "★ В избранном" : "☆ В избранное"}</button>
+          <div class="detail-next-step">
+            <span>Следующий шаг</span>
+            <strong>${escapeHtml(aiPlan.nextBestStep || "Пригласите блогера и согласуйте ТЗ.")}</strong>
           </div>
+          <a class="btn detail-primary-action" href="${primaryHref}"><span>${primaryLabel}</span>${icon("arrow", { size: 19 })}</a>
         </header>
 
-        <nav class="mobile-tabs" aria-label="Разделы кампании">
-          <a href="#campaign-main">Основное</a>
-          <a href="#campaign-brief">ТЗ</a>
-          <a href="#campaign-bloggers">Блогеры</a>
-          <a href="#campaign-chat">Чат</a>
-          <a href="#campaign-calendar">Календарь</a>
-          <a href="#campaign-reviews">Отзывы</a>
-          <a href="#campaign-stats">Статистика</a>
-        </nav>
-
-        <section class="card pad mobile-section" id="campaign-main">
-          <div class="section-title"><h2>Основное</h2><a href="#/ai-manager/${campaign.id}">AI Plan</a></div>
-          <div class="brief-grid">
-            ${briefBlock("Площадка", campaign.platform || campaign.channels?.join(", "))}
+        <section class="product-detail-section" id="campaign-main">
+          <div class="section-title"><h2>Коротко</h2><a href="#/ai-manager/${campaign.id}">${icon("ai", { size: 16 })}План</a></div>
+          <div class="brief-grid compact-brief-grid">
+            ${briefBlock("Площадки", campaign.platform || campaign.channels?.join(", "))}
             ${briefBlock("Категория", campaign.category)}
-            ${briefBlock("Период", campaign.dates || campaign.deadline)}
-            ${briefBlock("Следующий шаг", aiPlan.nextBestStep)}
           </div>
           ${progressBar(campaign.progress || 0)}
         </section>
 
-        <section class="card pad mobile-section" id="campaign-brief">
-          <div class="section-title"><h2>ТЗ</h2><button class="btn secondary" type="button" id="show-ai-brief">Улучшить с AI</button></div>
+        <details class="product-disclosure" id="campaign-brief">
+          <summary><span><strong>Техническое задание</strong><small>Цель, формат, KPI и ограничения</small></span>${icon("chevron", { size: 18 })}</summary>
           <div class="brief-grid">
             ${briefBlock("Цель", campaign.goal || campaign.description)}
             ${briefBlock("Формат", campaign.platform || "Shorts / Telegram")}
@@ -87,46 +78,27 @@ export const campaignDetailView = {
             ${briefBlock("Материалы", campaign.attachments?.length ? campaign.attachments.join(", ") : "Материалы еще не добавлены")}
             ${briefBlock("Ограничения", aiBrief.restrictions || campaign.requirements)}
           </div>
-        </section>
+        </details>
 
-        <section class="card pad mobile-section" id="campaign-bloggers">
-          <div class="section-title"><h2>Блогеры</h2><a href="#/bloggers">Каталог</a></div>
+        <section class="product-detail-section" id="campaign-bloggers">
+          <div class="section-title"><h2>Блогеры</h2><a href="#/bloggers">Подобрать</a></div>
           <div class="stack-list">
             ${
               bloggers.length
-                ? bloggers.map((blogger) => `<a class="mobile-list-card" href="#/bloggers/${blogger.id}"><span><strong>${escapeHtml(blogger.name)}</strong><small>${escapeHtml(blogger.category)} · ER ${escapeHtml(blogger.engagement)}</small></span><span class="status blue">Профиль</span></a>`).join("")
-                : `<a class="mobile-list-card" href="#/bloggers"><span><strong>Блогеры еще не добавлены</strong><small>Откройте каталог и отправьте приглашение.</small></span><span class="status amber">Подбор</span></a>`
+                ? bloggers.slice(0, 3).map((blogger) => `<a class="mobile-list-card" href="#/bloggers/${blogger.id}"><span><strong>${escapeHtml(blogger.name)}</strong><small>${escapeHtml(blogger.category)} · ER ${escapeHtml(blogger.engagement)}</small></span><span class="list-card-tail">${icon("chevron", { size: 17 })}</span></a>`).join("")
+                : `<a class="mobile-list-card zero-empty-prompt" href="#/bloggers"><span><strong>Блогеры еще не выбраны</strong><small>Подберите авторов под бюджет и аудиторию.</small></span><span class="list-card-tail">${icon("arrow", { size: 18 })}</span></a>`
             }
           </div>
         </section>
 
-        <section class="card pad mobile-section" id="campaign-chat">
-          <div class="section-title"><h2>Чат</h2>${primaryDeal ? `<a href="#/chat/${primaryDeal.chatId}">Открыть</a>` : ""}</div>
-          <p class="lead">${primaryDeal ? "Переписка привязана к активной сделке." : "Чат появится после принятия приглашения."}</p>
-        </section>
-
-        <section class="grid cols-2">
-          <article class="card pad mobile-section" id="campaign-calendar">
-            <h2>Календарь</h2>
-            <div class="stack-list">
-              <div class="mobile-list-card"><span><strong>${escapeHtml(campaign.deadline || "Не задан")}</strong><small>Финальный дедлайн</small></span>${statusBadge("Дедлайн")}</div>
-            </div>
-          </article>
-          <article class="card pad mobile-section" id="campaign-reviews">
-            <h2>Отзывы</h2>
-            <p class="lead">Отзывы появятся после завершения сделок.</p>
-          </article>
-        </section>
-
-        <section class="card pad mobile-section" id="campaign-stats">
-          <div class="section-title"><h2>Статистика</h2><a href="#/stats">Подробнее</a></div>
-          <div class="brief-grid">
-            ${briefBlock("Сделки", String(campaignDeals.length))}
-            ${briefBlock("Бюджет", money(campaign.budget))}
-            ${briefBlock("Прогресс", `${campaign.progress || 0}%`)}
-            ${briefBlock("Статус", campaign.status)}
+        <details class="product-disclosure campaign-more">
+          <summary><span><strong>Еще о кампании</strong><small>Чат, даты, отзывы и статистика</small></span>${icon("chevron", { size: 18 })}</summary>
+          <div class="campaign-more-list">
+            <a href="${primaryDeal ? `#/chat/${primaryDeal.chatId}` : "#/chat"}"><span>${icon("chat", { size: 18 })}<strong>Чат</strong></span><small>${primaryDeal ? "Переписка по сделке" : "Появится после принятия приглашения"}</small>${icon("chevron", { size: 17 })}</a>
+            <a href="#/calendar"><span>${icon("calendar", { size: 18 })}<strong>Календарь</strong></span><small>${escapeHtml(campaign.deadline || "Срок не задан")}</small>${icon("chevron", { size: 17 })}</a>
+            <a href="#/stats"><span>${icon("analytics", { size: 18 })}<strong>Статистика</strong></span><small>${campaignDeals.length} сделок · ${money(campaign.budget)}</small>${icon("chevron", { size: 17 })}</a>
           </div>
-        </section>
+        </details>
       </section>
     `;
   },
@@ -134,9 +106,6 @@ export const campaignDetailView = {
     document.querySelector("#favorite-campaign")?.addEventListener("click", () => {
       toggleFavorite("campaigns", params.id);
       router.replace(`/campaigns/${params.id}`);
-    });
-    document.querySelector("#show-ai-brief")?.addEventListener("click", () => {
-      document.querySelector("#campaign-brief")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   },
 };

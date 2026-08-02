@@ -1,5 +1,6 @@
 import { enrichDeal, getState } from "../store.js";
 import { escapeHtml, money, pageHeader, smartEmptyState, statusBadge } from "../components/ui.js";
+import { icon } from "../components/icons.js";
 
 const productText = (value) =>
   String(value || "")
@@ -19,12 +20,12 @@ const dealCard = (deal) => {
           <strong>${escapeHtml(productText(campaign.title))}</strong>
           <small>${escapeHtml(blogger.name)} · ${escapeHtml(deal.number)}</small>
         </span>
-        ${statusBadge(deal.status)}
+        <span class="list-card-tail">${statusBadge(deal.status)}${icon("chevron", { size: 17 })}</span>
       </a>
       <div class="deal-list-meta">
         <span><small>Сумма</small><strong>${money(deal.amount)}</strong></span>
         <span><small>Срок</small><strong>${escapeHtml(deal.due || "Без срока")}</strong></span>
-        <a href="#/chat/${deal.chatId}">Чат</a>
+        <a class="icon-button" href="#/chat/${deal.chatId}" aria-label="Открыть чат">${icon("chat", { size: 17 })}</a>
       </div>
     </article>
   `;
@@ -41,10 +42,9 @@ export const dealsView = {
     return `
       <section class="page deals-mobile-list">
         ${pageHeader({
-          eyebrow: "Сделки",
           title: "Сделки",
-          lead: "Откройте сделку и сразу увидите этап, ответственного и следующий шаг.",
-          actions: `<a class="btn secondary" href="#/invitations"><span class="tool-icon">◇</span>Приглашения</a>`,
+          lead: `${deals.length} активных · следующий шаг внутри каждой сделки`,
+          actions: `<a class="icon-button" href="#/invitations" aria-label="Приглашения">${icon("invitations", { size: 19 })}</a>`,
         })}
         <div class="stack-list">
           ${

@@ -2,6 +2,7 @@ import { actionCenterService } from "../services/actionCenterService.js";
 import { automationService } from "../services/automationService.js";
 import { enrichDeal, getState, setRole } from "../store.js";
 import { escapeHtml, money, statusBadge } from "../components/ui.js";
+import { icon } from "../components/icons.js";
 
 const productText = (value) =>
   String(value || "")
@@ -24,36 +25,53 @@ const showRoleToast = (label) => {
   current?.remove();
   const toast = document.createElement("div");
   toast.className = "role-toast success";
-  toast.textContent = `✓ Роль: ${label}`;
+  toast.textContent = `Роль: ${label}`;
   document.body.append(toast);
   window.setTimeout(() => toast.remove(), 1500);
 };
 
-const actionCard = ({ href, icon, title, text }) => `
-  <a class="mobile-action" href="${escapeHtml(href)}">
-    <span aria-hidden="true">${escapeHtml(icon)}</span>
+const actionCard = ({ href, icon, title, text }) => {
+  const opensCampaign = href === "#/campaigns#create";
+  const targetHref = opensCampaign ? "#/campaigns" : href;
+  return `
+  <a class="mobile-action" href="${escapeHtml(targetHref)}" ${opensCampaign ? "data-open-campaign" : ""} aria-label="${escapeHtml(productText(title))}">
+    <span aria-hidden="true">${iconForAction(targetHref, icon)}</span>
     <strong>${escapeHtml(productText(title))}</strong>
-    <small>${escapeHtml(productText(text))}</small>
+    ${text ? `<small>${escapeHtml(productText(text))}</small>` : ""}
   </a>
 `;
+};
+
+const iconForAction = (href, fallback) => {
+  if (href.includes("campaign")) return icon(fallback === "plus" ? "plus" : "campaigns", { size: 20 });
+  if (href.includes("blogger")) return icon("users", { size: 20 });
+  if (href.includes("invitation")) return icon("invitations", { size: 20 });
+  if (href.includes("deal")) return icon("deals", { size: 20 });
+  if (href.includes("chat")) return icon("chat", { size: 20 });
+  if (href.includes("profile")) return icon("profile", { size: 20 });
+  return icon("arrow", { size: 20 });
+};
 
 const smartHero = ({ kicker, title, text, href, action }) => `
   <section class="smart-hero zero-home-hero">
+    <span class="smart-hero-icon" aria-hidden="true">${icon("alert", { size: 21 })}</span>
     <div>
       <span>${escapeHtml(productText(kicker))}</span>
       <strong>${escapeHtml(productText(title))}</strong>
       <p>${escapeHtml(productText(text))}</p>
     </div>
-    <a class="btn" href="${escapeHtml(href)}">${escapeHtml(productText(action))}</a>
+    <a class="btn" href="${escapeHtml(href)}">${escapeHtml(productText(action))}${icon("arrow", { size: 18 })}</a>
   </section>
 `;
 
 const actionCenterItem = (item) => `
   <a class="action-center-card ${escapeHtml(item.tone)}" href="${escapeHtml(item.href)}">
-    <span>${escapeHtml(productText(item.source))}</span>
-    <strong>${escapeHtml(productText(item.title))}</strong>
-    <small>${escapeHtml(productText(item.text))}</small>
-    <em>${escapeHtml(productText(item.action))}</em>
+    <span class="action-center-icon" aria-hidden="true">${icon(item.tone === "critical" ? "alert" : item.tone === "success" ? "check" : "arrow", { size: 18 })}</span>
+    <span class="action-center-copy">
+      <small>${escapeHtml(productText(item.source))}</small>
+      <strong>${escapeHtml(productText(item.title))}</strong>
+    </span>
+    <span class="action-center-arrow" aria-hidden="true">${icon("chevron", { size: 18 })}</span>
   </a>
 `;
 
@@ -63,7 +81,7 @@ const miniDeal = (deal) => `
       <strong>${escapeHtml(productText(deal.campaign?.title || deal.number))}</strong>
       <small>${escapeHtml(deal.blogger?.name || "Блогер")} · ${money(deal.amount)}</small>
     </span>
-    ${statusBadge(deal.status)}
+    <span class="list-card-tail">${statusBadge(deal.status)}${icon("chevron", { size: 17 })}</span>
   </a>
 `;
 
@@ -73,7 +91,7 @@ const miniCampaign = (campaign) => `
       <strong>${escapeHtml(productText(campaign.title))}</strong>
       <small>${escapeHtml(campaign.brand)} · ${money(campaign.budget)}</small>
     </span>
-    ${statusBadge(campaign.status)}
+    <span class="list-card-tail">${statusBadge(campaign.status)}${icon("chevron", { size: 17 })}</span>
   </a>
 `;
 
@@ -86,7 +104,7 @@ const miniMessage = (thread) => {
         <strong>${escapeHtml(productText(thread.title))}</strong>
         <small>${escapeHtml(productText(last?.text || thread.subtitle || "Открыть переписку"))}</small>
       </span>
-      <span class="status blue">Чат</span>
+      <span class="list-card-tail">${icon("chevron", { size: 17 })}</span>
     </a>
   `;
 };
@@ -102,7 +120,7 @@ const aiAdviceCard = ({ title, text, href, action }) => `
         <strong>${escapeHtml(productText(title))}</strong>
         <small>${escapeHtml(productText(text))}</small>
       </span>
-      <span class="status blue">${escapeHtml(productText(action))}</span>
+      <span class="list-card-tail">${icon("arrow", { size: 18 })}</span>
     </a>
   </section>
 `;
@@ -130,7 +148,7 @@ export const homeView = {
     const recentThreads = state.chatThreads.slice(0, 2);
     const heroItem = actionCenterService.hero({ role: state.currentRole });
     const automation = automationService.top({ role: state.currentRole });
-    const actionItems = actionCenterService.list({ role: state.currentRole, limit: 3 });
+    const actionItems = actionCenterService.list({ role: state.currentRole, limit: 2 });
     const aiAdvice = automation || heroItem || {
       title: "Сегодня нет срочных задач",
       text: "Можно спокойно проверить активные сделки и сообщения.",
@@ -152,15 +170,27 @@ export const homeView = {
           href: isBlogger ? "#/invitations" : "#/campaigns",
           action: isBlogger ? "Открыть" : "Создать кампанию",
         };
-    const actions = actionCenterService.quickActions({ role: state.currentRole });
+    const actions = isBlogger
+      ? [
+          { href: "#/campaigns", icon: "campaigns", title: "Кампании" },
+          { href: "#/invitations", icon: "invitations", title: "Приглашения" },
+          { href: "#/deals", icon: "deals", title: "Сделки" },
+          { href: "#/chat", icon: "chat", title: "Чаты" },
+        ]
+      : [
+          { href: "#/campaigns#create", icon: "plus", title: "Новая кампания" },
+          { href: "#/bloggers", icon: "users", title: "Найти блогера" },
+          { href: "#/deals", icon: "deals", title: "Сделки" },
+          { href: "#/chat", icon: "chat", title: "Чаты" },
+        ];
 
     return `
       <section class="page mobile-home zero-friction-home">
         <header class="mobile-home-top">
           <div>
-            <p class="eyebrow">vbloge OS</p>
-            <h1>${isBlogger ? "Здравствуйте, Mila" : "Здравствуйте, Анна"}</h1>
-            <p class="lead">${isBlogger ? "Ваши приглашения, публикации и выплаты в одном месте." : "Ваши кампании, блогеры и сделки в одном месте."}</p>
+            <p class="page-context">Сегодня</p>
+            <h1>${isBlogger ? "Добрый день, Mila" : "Добрый день, Анна"}</h1>
+            <p class="lead">${actionItems.length ? `${actionItems.length} ${actionItems.length === 1 ? "задача" : "задачи"} требуют внимания` : "Срочных задач нет"}</p>
           </div>
           ${roleSwitcher(state.currentRole)}
         </header>
@@ -174,7 +204,7 @@ export const homeView = {
         <section class="mobile-section smart-action-center">
           <div class="section-title">
             <h2>Что требует внимания</h2>
-            <a href="#/notifications">Все</a>
+            <a href="#/notifications">Открыть все</a>
           </div>
           <div class="action-center-grid">
             ${
@@ -230,6 +260,9 @@ export const homeView = {
     `;
   },
   mount({ router }) {
+    document.querySelector("[data-open-campaign]")?.addEventListener("click", () => {
+      window.sessionStorage.setItem("vbloge.openCampaignCreate", "1");
+    });
     document.querySelectorAll("[data-role-switch]").forEach((button) => {
       button.addEventListener("click", () => {
         const role = button.dataset.roleSwitch;

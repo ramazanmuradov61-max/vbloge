@@ -4,6 +4,14 @@ import { reviewService } from "../services/reviewService.js";
 import { scoreService } from "../services/scoreService.js";
 import { getBlogger, getDealsForBlogger, getState, setRole } from "../store.js";
 import { avatar, escapeHtml, money, pageHeader, statusBadge } from "../components/ui.js";
+import { icon } from "../components/icons.js";
+
+const disclosure = ({ title, meta, content, open = false }) => `
+  <details class="product-disclosure" ${open ? "open" : ""}>
+    <summary><span><strong>${escapeHtml(title)}</strong><small>${escapeHtml(meta)}</small></span>${icon("chevron", { size: 18 })}</summary>
+    <div class="disclosure-content">${content}</div>
+  </details>
+`;
 
 export const profileView = {
   title: "Профиль",
@@ -20,148 +28,88 @@ export const profileView = {
     const completionRate = bloggerDeals.length ? Math.round((bloggerDeals.filter((deal) => deal.stageIndex >= 6).length / bloggerDeals.length) * 100) : 0;
     const company = companyService.current();
     const analytics = analyticsService.getDashboard();
+    const roleLabel = isBlogger ? "Блогер" : "Закупщик";
+
+    const overviewContent = isBlogger
+      ? `
+          <p class="lead">${escapeHtml(blogger.audienceProfile)}</p>
+          <div class="button-row">${[blogger.category, ...bloggerChannels].filter(Boolean).map((item) => `<span class="status blue">${escapeHtml(item)}</span>`).join("")}</div>
+          <div class="profile-secondary-metrics">
+            <div><span>CPM</span><strong>${escapeHtml(blogger.cpm)}</strong></div>
+            <div><span>Ответ</span><strong>2 часа</strong></div>
+            <div><span>Завершено</span><strong>${completionRate}%</strong></div>
+          </div>
+        `
+      : `
+          <p class="lead">${escapeHtml(company.company.description)}</p>
+          <div class="profile-secondary-metrics">
+            <div><span>Финансы</span><strong>${escapeHtml(company.company.financeStatus)}</strong></div>
+            <div><span>Команда</span><strong>${company.members.length}</strong></div>
+            <div><span>Успешно</span><strong>${analytics.successfulDeals} сделок</strong></div>
+          </div>
+        `;
+
+    const workContent = isBlogger
+      ? `
+          <div class="stack-list">
+            ${bloggerDeals.length
+              ? bloggerDeals.map((deal) => `<a class="compact-card" href="#/deals/${deal.id}"><span><strong>${escapeHtml(deal.campaign?.title || deal.campaignTitle || deal.number || "Сделка")}</strong><small>${money(deal.amount || deal.budget || 0)} · ${escapeHtml(deal.status || "в работе")}</small></span>${statusBadge(deal.status || "в работе")}</a>`).join("")
+              : `<a class="compact-card" href="#/campaigns"><span><strong>Сделок пока нет</strong><small>Выберите подходящую кампанию.</small></span>${icon("chevron", { size: 17 })}</a>`}
+          </div>
+        `
+      : `
+          <div class="stack-list">
+            ${company.campaigns.map((campaign) => `<a class="compact-card" href="#/campaigns/${campaign.id}"><span><strong>${escapeHtml(campaign.title)}</strong><small>${money(campaign.budget)} · ${escapeHtml(campaign.status)}</small></span>${statusBadge(campaign.status)}</a>`).join("")}
+          </div>
+        `;
+
+    const reviewsContent = isBlogger
+      ? `<div class="stack-list">${bloggerReviews.length ? bloggerReviews.map((review) => `<div class="compact-card"><span><strong>${review.rating}/5</strong><small>${escapeHtml(review.comment)} · ${(review.tags || []).map(escapeHtml).join(", ")}</small></span></div>`).join("") : `<div class="empty">Отзывы появятся после завершенных сделок.</div>`}</div>`
+      : `<div class="stack-list">${company.reviews.map((review) => `<div class="compact-card"><span><strong>${review.rating}/5</strong><small>${escapeHtml(review.comment)} · ${(review.tags || []).map(escapeHtml).join(", ")}</small></span></div>`).join("")}</div>`;
 
     return `
-      <section class="page">
+      <section class="page profile-page">
         ${pageHeader({
-          eyebrow: "Аккаунт",
-          title: isBlogger ? "Профиль блогера" : "Профиль компании",
-          lead: isBlogger ? "Публичные показатели автора, портфолио, сделки, отзывы и динамика AI Score." : "Компания закупщика: команда, финансы, кампании, отзывы и рейтинг.",
-          actions: `<a class="btn secondary" href="#/role">Сменить роль</a>`,
+          title: "Профиль",
+          lead: isBlogger ? "Как вас видят бренды." : "Компания, команда и рабочие данные.",
+          actions: `<a class="btn" href="#/settings">${icon("edit", { size: 17 })}<span>Редактировать</span></a>`,
         })}
+
         <div class="role-switcher profile-role-switcher" aria-label="Переключатель роли">
           <button class="${currentRole === "buyer" ? "active" : ""}" type="button" data-role-switch="buyer">Закупщик</button>
           <button class="${currentRole === "blogger" ? "active" : ""}" type="button" data-role-switch="blogger">Блогер</button>
         </div>
-        <section class="split">
-          <div class="card pad">
-            <div class="profile-head">
-              ${avatar(user.name)}
-              <div>
-                <h2>${escapeHtml(user.name)}</h2>
-                <p class="lead">${escapeHtml(user.role)} · ${escapeHtml(user.company)}</p>
-              </div>
-            </div>
-            ${
-              isBlogger
-                ? `
-                  <div class="grid cols-4 profile-metrics">
-                    <div><span class="metric-label">ER</span><strong>${escapeHtml(blogger.engagement)}</strong></div>
-                    <div><span class="metric-label">CPM</span><strong>${escapeHtml(blogger.cpm)}</strong></div>
-                    <div><span class="metric-label">Средний охват</span><strong>${escapeHtml(blogger.avgReach)}</strong></div>
-                    <div><span class="metric-label">AI Score</span><strong>${bloggerScore.score}</strong></div>
-                  </div>
-                  <div class="grid cols-4 profile-metrics">
-                    <div><span class="metric-label">Среднее время ответа</span><strong>2 ч</strong></div>
-                    <div><span class="metric-label">Завершено</span><strong>${completionRate}%</strong></div>
-                    <div><span class="metric-label">Сделки</span><strong>${bloggerDeals.length}</strong></div>
-                    <div><span class="metric-label">Рейтинг</span><strong>${reviewService.averageRating("mila-fresh") || "4.9"}</strong></div>
-                  </div>
-                  <h3>Аудитория</h3>
-                  <p class="lead">${escapeHtml(blogger.audienceProfile)}</p>
-                  <h3>Категории</h3>
-                  <div class="button-row">${[blogger.category, ...bloggerChannels].filter(Boolean).map((item) => `<span class="status blue">${escapeHtml(item)}</span>`).join("")}</div>
-                `
-                : `
-                  <div class="profile-head">
-                    <span class="avatar">${escapeHtml(company.company.logo || "CO")}</span>
-                    <div>
-                      <h2>${escapeHtml(company.company.name)}</h2>
-                      <p class="lead">${escapeHtml(company.company.description)}</p>
-                    </div>
-                  </div>
-                  <div class="grid cols-4 profile-metrics">
-                    <div><span class="metric-label">Рейтинг</span><strong>${company.rating}</strong></div>
-                    <div><span class="metric-label">Кампании</span><strong>${company.campaigns.length}</strong></div>
-                    <div><span class="metric-label">Бюджет сделок</span><strong>${money(analytics.totalBudget)}</strong></div>
-                    <div><span class="metric-label">Успешные сделки</span><strong>${analytics.successfulDeals}</strong></div>
-                  </div>
-                `
-            }
+
+        <section class="profile-identity">
+          <div class="profile-identity-head">
+            ${avatar(user.name)}
+            <span><h1>${escapeHtml(isBlogger ? blogger.name : company.company.name)}</h1><small>${escapeHtml(roleLabel)} · ${escapeHtml(isBlogger ? blogger.city : user.company)}</small></span>
+            ${statusBadge(isBlogger ? blogger.status : `Рейтинг ${company.rating}`)}
           </div>
-          <aside class="card pad">
-            <h2>${isBlogger ? "Календарь" : "Доступы"}</h2>
-            <div class="list">
-              ${
-                isBlogger
-                  ? bloggerCalendar.length
-                    ? bloggerCalendar.map((event) => `<div class="list-item"><span>${escapeHtml(event)}</span>${statusBadge("запланировано")}</div>`).join("")
-                    : `<div class="list-item"><span>Календарь свободен</span>${statusBadge("можно планировать")}</div>`
-                  : `
-                    <div class="list-item"><span>Текущая роль</span><strong>Закупщик</strong></div>
-                    <div class="list-item"><span>Финансы</span><strong>${escapeHtml(company.company.financeStatus)}</strong></div>
-                    <div class="list-item"><span>Команда</span><strong>${company.members.length}</strong></div>
-                    <div class="list-item"><span>AI</span><strong>Подсказки включены</strong></div>
-                  `
-              }
-            </div>
-          </aside>
+          <div class="profile-key-metrics">
+            ${isBlogger
+              ? `
+                  <div><span>AI Score</span><strong>${bloggerScore.score}</strong></div>
+                  <div><span>ER</span><strong>${escapeHtml(blogger.engagement)}</strong></div>
+                  <div><span>Охват</span><strong>${escapeHtml(blogger.avgReach)}</strong></div>
+                  <div><span>Рейтинг</span><strong>${reviewService.averageRating("mila-fresh") || "4.9"}</strong></div>
+                `
+              : `
+                  <div><span>Рейтинг</span><strong>${company.rating}</strong></div>
+                  <div><span>Кампании</span><strong>${company.campaigns.length}</strong></div>
+                  <div><span>Бюджет</span><strong>${money(analytics.totalBudget)}</strong></div>
+                  <div><span>Сделки</span><strong>${analytics.successfulDeals}</strong></div>
+                `}
+          </div>
         </section>
-        ${
-          isBlogger
-            ? `
-              <section class="card pad">
-                <h2>Портфолио</h2>
-                <div class="grid cols-3 portfolio-grid">
-                  ${
-                    bloggerPortfolio.length
-                      ? bloggerPortfolio.map((item) => `<div class="portfolio-tile"><strong>${escapeHtml(item)}</strong><span>кейс</span></div>`).join("")
-                      : `<div class="portfolio-tile"><strong>Портфолио обновляется</strong><span>кейс</span></div>`
-                  }
-                </div>
-              </section>
-              <section class="grid cols-2">
-                <article class="card pad">
-                  <h2>История сделок</h2>
-                  <div class="stack-list">
-                    ${
-                      bloggerDeals.length
-                        ? bloggerDeals.map((deal) => `<a class="compact-card" href="#/deals/${deal.id}"><span><strong>${escapeHtml(deal.campaign?.title || deal.campaignTitle || deal.number || "Сделка")}</strong><small>${money(deal.amount || deal.budget || 0)} · ${escapeHtml(deal.status || "в работе")}</small></span>${statusBadge(deal.status || "в работе")}</a>`).join("")
-                        : `<a class="compact-card" href="#/campaigns"><span><strong>Сделок пока нет</strong><small>Откройте кампании и выберите подходящую.</small></span></a>`
-                    }
-                  </div>
-                </article>
-                <article class="card pad">
-                  <h2>Последние отзывы</h2>
-                  <div class="stack-list">
-                    ${
-                      bloggerReviews.length
-                        ? bloggerReviews.map((review) => `<div class="compact-card"><span><strong>${review.rating}/5 · ${escapeHtml(review.fromRole)}</strong><small>${escapeHtml(review.comment)} · ${(review.tags || []).map(escapeHtml).join(", ")}</small></span></div>`).join("")
-                        : `<div class="compact-card"><span><strong>Отзывы появятся после сделок</strong><small>Рейтинг обновится автоматически.</small></span></div>`
-                    }
-                  </div>
-                </article>
-              </section>
-              <section class="card pad">
-                <h2>AI Score History</h2>
-                <div class="bar-chart">
-                  ${[82, 85, 88, bloggerScore.score].map((value, index) => `<div class="bar-row"><span>Нед ${index + 1}</span><div class="bar-track"><i style="width: ${value}%"></i></div><strong>${value}</strong></div>`).join("")}
-                </div>
-              </section>
-            `
-            : `
-              <section class="grid cols-2">
-                <article class="card pad">
-                  <h2>Команда</h2>
-                  <div class="stack-list">
-                    ${company.members.map((member) => `<div class="compact-card"><span><strong>${escapeHtml(member.name)}</strong><small>${escapeHtml(member.role)} · ${(member.permissions || []).map(escapeHtml).join(", ")}</small></span></div>`).join("")}
-                  </div>
-                </article>
-                <article class="card pad">
-                  <h2>Отзывы компании</h2>
-                  <div class="stack-list">
-                    ${company.reviews.map((review) => `<div class="compact-card"><span><strong>${review.rating}/5</strong><small>${escapeHtml(review.comment)} · ${(review.tags || []).map(escapeHtml).join(", ")}</small></span></div>`).join("")}
-                  </div>
-                </article>
-              </section>
-              <section class="card pad">
-                <h2>Кампании компании</h2>
-                <div class="stack-list">
-                  ${company.campaigns.map((campaign) => `<a class="compact-card" href="#/campaigns/${campaign.id}"><span><strong>${escapeHtml(campaign.title)}</strong><small>${money(campaign.budget)} · ${escapeHtml(campaign.status)}</small></span>${statusBadge(campaign.status)}</a>`).join("")}
-                </div>
-              </section>
-            `
-        }
+
+        ${disclosure({ title: isBlogger ? "О профиле" : "О компании", meta: isBlogger ? "Аудитория и направления" : "Описание и финансы", content: overviewContent, open: true })}
+        ${isBlogger ? disclosure({ title: "Портфолио", meta: `${bloggerPortfolio.length} кейса`, content: `<div class="grid cols-3 portfolio-grid">${bloggerPortfolio.map((item) => `<div class="portfolio-tile"><strong>${escapeHtml(item)}</strong><span>Кейс</span></div>`).join("")}</div>` }) : ""}
+        ${disclosure({ title: isBlogger ? "Сделки" : "Кампании", meta: isBlogger ? `${bloggerDeals.length} в истории` : `${company.campaigns.length} активных`, content: workContent })}
+        ${disclosure({ title: "Отзывы", meta: isBlogger ? `${bloggerReviews.length} последних` : `${company.reviews.length} последних`, content: reviewsContent })}
+        ${isBlogger
+          ? disclosure({ title: "Календарь", meta: `${bloggerCalendar.length} ближайшие даты`, content: `<div class="stack-list">${bloggerCalendar.map((event) => `<div class="mobile-list-card"><span><strong>${escapeHtml(event)}</strong></span>${statusBadge("Запланировано")}</div>`).join("")}</div>` })
+          : disclosure({ title: "Команда", meta: `${company.members.length} сотрудника`, content: `<div class="stack-list">${company.members.map((member) => `<div class="compact-card"><span><strong>${escapeHtml(member.name)}</strong><small>${escapeHtml(member.role)}</small></span></div>`).join("")}</div>` })}
       </section>
     `;
   },
@@ -173,7 +121,7 @@ export const profileView = {
         const current = document.querySelector(".role-toast");
         current?.remove();
         const toast = document.createElement("div");
-        toast.className = "role-toast";
+        toast.className = "role-toast success";
         toast.textContent = `Роль: ${role === "blogger" ? "Блогер" : "Закупщик"}`;
         document.body.append(toast);
         window.setTimeout(() => toast.remove(), 1400);

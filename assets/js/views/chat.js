@@ -1,5 +1,6 @@
 import { addMessage, enrichDeal, getChat, getDeal, getMessages, getState } from "../store.js";
 import { avatar, emptyState, escapeHtml, money, pageHeader, statusBadge } from "../components/ui.js";
+import { icon } from "../components/icons.js";
 
 const productText = (value) =>
   String(value || "")
@@ -14,25 +15,25 @@ const renderThread = (thread) => {
   const messages = getMessages(thread.id);
 
   return `
-    <div class="card pad">
-      <div class="list-item">
-        <div>
-          <h2>${escapeHtml(productText(thread.title))}</h2>
-          <p class="meta">${escapeHtml(productText(thread.subtitle))}</p>
-        </div>
-        ${deal ? statusBadge(deal.status) : ""}
+    <header class="conversation-header">
+      <a class="icon-button" href="#/chat" aria-label="К списку диалогов">${icon("back", { size: 21 })}</a>
+      <div class="conversation-person">
+        ${avatar(productText(thread.title))}
+        <span>
+          <strong>${escapeHtml(productText(thread.title))}</strong>
+          <small>${escapeHtml(productText(deal?.campaign?.title || thread.subtitle))}</small>
+        </span>
       </div>
-      ${
-        deal
-          ? `<div class="grid cols-4">
-              <a class="list-item" href="#/campaigns/${deal.campaign.id}"><span>Кампания</span><strong>${escapeHtml(productText(deal.campaign.title))}</strong></a>
-              <a class="list-item" href="#/bloggers/${deal.blogger.id}"><span>Блогер</span><strong>${escapeHtml(deal.blogger.name)}</strong></a>
-              <a class="list-item" href="#/deals/${deal.id}"><span>Сделка</span><strong>${escapeHtml(deal.number)}</strong></a>
-              <div class="list-item"><span>Бюджет</span><strong>${money(deal.amount)}</strong></div>
-            </div>`
-          : ""
-      }
-    </div>
+      ${deal ? `<a class="conversation-status" href="#/deals/${deal.id}" aria-label="Открыть сделку">${statusBadge(deal.status)}${icon("chevron", { size: 17 })}</a>` : ""}
+    </header>
+    ${
+      deal
+        ? `<a class="conversation-deal-bar" href="#/deals/${deal.id}">
+            <span><small>Сделка</small><strong>${money(deal.amount)} · ${escapeHtml(deal.due || "без срока")}</strong></span>
+            <span>Открыть${icon("chevron", { size: 16 })}</span>
+          </a>`
+        : ""
+    }
     <div class="chat-messages" data-chat-messages>
       ${messages
         .map(
@@ -46,11 +47,36 @@ const renderThread = (thread) => {
         .join("")}
     </div>
     <form class="chat-compose" data-chat-form data-thread-id="${thread.id}">
-      <input class="field-input" name="message" placeholder="Напишите сообщение" required />
-      <button class="btn" type="submit"><span class="tool-icon">→</span>Отправить</button>
+      <input class="field-input" name="message" placeholder="Сообщение" aria-label="Сообщение" required />
+      <button class="btn icon-only" type="submit" aria-label="Отправить сообщение">${icon("send", { size: 19 })}</button>
     </form>
   `;
 };
+
+const renderThreadList = (chatThreads) => `
+  <div class="conversation-list">
+    ${chatThreads
+      .map((thread) => {
+        const deal = enrichDeal(getDeal(thread.dealId));
+        const messages = getMessages(thread.id);
+        const lastMessage = messages[messages.length - 1];
+        return `
+          <a class="conversation-list-item" href="#/chat/${thread.id}">
+            ${avatar(productText(thread.title))}
+            <span class="conversation-list-copy">
+              <strong>${escapeHtml(productText(thread.title))}</strong>
+              <small>${escapeHtml(productText(lastMessage?.text || deal?.campaign?.title || thread.subtitle))}</small>
+            </span>
+            <span class="conversation-list-meta">
+              <small>${escapeHtml(lastMessage?.time || "")}</small>
+              ${icon("chevron", { size: 17 })}
+            </span>
+          </a>
+        `;
+      })
+      .join("")}
+  </div>
+`;
 
 export const chatView = {
   title: "Чат",
@@ -59,42 +85,22 @@ export const chatView = {
     const active = getChat(params.id) || chatThreads[0];
     if (!active) return emptyState("Переписок пока нет.");
 
-    return `
-      <section class="page">
-        ${pageHeader({
-          eyebrow: "Коммуникации",
-          title: "Чат",
-          lead: "Переписки привязаны к конкретным сделкам и кампаниям.",
-        })}
-        <section class="chat-layout">
-          <aside class="card chat-list">
-            <div class="card pad">
-              <h2>Диалоги</h2>
-              <div class="list">
-                ${chatThreads
-                  .map((thread) => {
-                    const deal = enrichDeal(getDeal(thread.dealId));
-                    return `
-                      <a class="list-item ${thread.id === active.id ? "active-row" : ""}" href="#/chat/${thread.id}">
-                        <span class="person">
-                          ${avatar(productText(thread.title))}
-                          <span class="person-text">
-                            <strong>${escapeHtml(productText(thread.title))}</strong>
-                            <span class="meta">${escapeHtml(productText(deal?.campaign?.title || thread.subtitle))}</span>
-                          </span>
-                        </span>
-                        ${deal ? statusBadge(deal.status) : ""}
-                      </a>
-                    `;
-                  })
-                  .join("")}
-              </div>
-            </div>
-          </aside>
-          <div class="card chat-window" data-chat-window>
-            ${renderThread(active)}
-          </div>
+    if (!params.id) {
+      return `
+        <section class="page conversations-page">
+          ${pageHeader({ title: "Сообщения", lead: `${chatThreads.length} активных диалога` })}
+          <label class="mobile-inline-search conversation-search">
+            <span aria-hidden="true">${icon("search", { size: 19 })}</span>
+            <input type="search" placeholder="Найти диалог" aria-label="Найти диалог" />
+          </label>
+          ${renderThreadList(chatThreads)}
         </section>
+      `;
+    }
+
+    return `
+      <section class="page conversation-page">
+        <div class="chat-window" data-chat-window>${renderThread(active)}</div>
       </section>
     `;
   },

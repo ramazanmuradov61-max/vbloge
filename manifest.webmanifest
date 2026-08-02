@@ -1,12 +1,12 @@
 {
-  "name": "vbloge Public Demo",
+  "name": "vbloge",
   "short_name": "vbloge",
-  "description": "Influencer marketing OS demo: campaigns, bloggers, deals, escrow, chat, analytics and AI.",
+  "description": "Mobile operating system for influencer marketing: campaigns, creators, deals, chat, payments and analytics.",
   "start_url": "./#/auth",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f6f7fb",
-  "theme_color": "#2563eb",
+  "background_color": "#f6f7f9",
+  "theme_color": "#e95461",
   "icons": [
     {
       "src": "./assets/images/favicon.svg",

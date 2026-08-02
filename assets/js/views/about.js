@@ -1,24 +1,24 @@
 import { getState } from "../store.js";
-import { badge, escapeHtml, kpiCard, pageHeader, statusBadge } from "../components/ui.js";
+import { escapeHtml, pageHeader, statusBadge } from "../components/ui.js";
+import { icon } from "../components/icons.js";
 
 const release = {
-  version: "VBloge 6.1.1",
-  build: "2026.07.02",
-  readiness: "89%",
+  version: "VBloge 8.0",
+  build: "2026.08.03",
 };
 
 const changelog = [
   "Единая мобильная навигация и понятный рабочий стол для закупщика и блогера.",
   "Сделка показывает статус, ответственного и один главный следующий шаг.",
   "AI помогает с кампаниями, подбором блогеров, рисками, дедлайнами и аналитикой.",
-  "Dev Panel позволяет запускать готовые сценарии, менять роль и проверять данные.",
+  "Инструменты позволяют запускать готовые сценарии, менять роль и проверять данные.",
   "Интерфейс приведен к единому языку: кампания, сделка, блогер, отчет, оплата.",
 ];
 
 const roadmap = [
   "Backend API и реальная авторизация.",
   "Real-time chat, загрузка файлов и документы.",
-  "Платежный провайдер, escrow и серверные права доступа.",
+  "Платежный провайдер, безопасные выплаты и серверные права доступа.",
 ];
 
 export const aboutView = {
@@ -28,48 +28,33 @@ export const aboutView = {
     return `
       <section class="page release-page">
         ${pageHeader({
-          eyebrow: "О продукте",
-          title: "vbloge как мобильная операционная система",
-          lead: "Один продукт для поиска блогеров, запуска кампаний, ведения сделок, чата, оплат, отчетов, аналитики и AI-помощника.",
-          actions: `<a class="btn secondary" href="#/home">На главную</a><a class="btn secondary" href="#/dev">Dev Panel</a>`,
+          title: "О vbloge",
+          lead: "Вся работа с рекламными интеграциями в одном приложении",
+          actions: `<a class="btn" href="#/home">На главную</a>`,
         })}
-        <section class="grid cols-3">
-          ${kpiCard({ label: "Версия", value: release.version, meta: release.build, tone: "blue" })}
-          ${kpiCard({ label: "Готовность", value: release.readiness, meta: "оценка продукта", tone: "green" })}
-          ${kpiCard({ label: "Данные", value: `${state.campaigns.length}/${state.deals.length}`, meta: "кампании / сделки", tone: "amber" })}
-        </section>
-        <section class="grid cols-2">
-          <article class="card pad">
-            <div class="section-title">
-              <h2>Что уже работает</h2>
-              ${statusBadge("mobile-first")}
-            </div>
-            <div class="stack-list">
-              ${changelog.map((item) => `<div class="compact-card"><span><strong>${escapeHtml(item)}</strong></span>${badge("готово", "green")}</div>`).join("")}
-            </div>
-          </article>
-          <article class="card pad">
-            <div class="section-title">
-              <h2>Состояние MVP</h2>
-              ${statusBadge("commercial prototype")}
-            </div>
-            <div class="stack-list">
-              <div class="compact-card"><span><strong>Рабочие сценарии</strong><small>Кампания, приглашение, сделка, escrow, отчет, отзыв, чат и AI.</small></span></div>
-              <div class="compact-card"><span><strong>Мобильный UX</strong><small>390px/430px, bottom nav, карточки вместо таблиц, safe-area.</small></span></div>
-              <div class="compact-card"><span><strong>Основа продукта</strong><small>Данные, навигация и сервисный слой готовы к подключению backend.</small></span></div>
-              <div class="compact-card"><span><strong>Следующий слой</strong><small>Реальные аккаунты, платежи, файлы, документы и серверные уведомления.</small></span></div>
-            </div>
-          </article>
-        </section>
-        <section class="card pad">
-          <div class="section-title">
-            <h2>Roadmap</h2>
-            <a href="#/dev">Запустить сценарий</a>
-          </div>
-          <div class="grid cols-3">
-            ${roadmap.map((item) => `<article class="recommendation-card blue"><strong>${escapeHtml(item)}</strong><span>Следующий этап без смены архитектуры продукта.</span></article>`).join("")}
+        <section class="about-product-hero">
+          <span class="brand-mark large" aria-hidden="true">v</span>
+          <div>
+            <div class="about-version">${statusBadge(release.version)}<span>${escapeHtml(release.build)}</span></div>
+            <h2>Операционная система для influencer-маркетинга</h2>
+            <p>Кампании, блогеры, сделки, сообщения, выплаты и аналитика связаны в один понятный рабочий процесс.</p>
           </div>
         </section>
+
+        <section class="product-section">
+          <div class="section-title"><h2>Что уже работает</h2><span class="meta">${state.campaigns.length} кампаний · ${state.deals.length} сделок</span></div>
+          <div class="about-capability-list">
+            ${changelog.map((item) => `<div class="about-capability-row">${icon("check", { size: 18 })}<span>${escapeHtml(item)}</span></div>`).join("")}
+          </div>
+        </section>
+
+        <details class="product-disclosure">
+          <summary><span>${icon("arrow", { size: 18 })}<strong>Следующие этапы</strong></span>${icon("chevron", { size: 18 })}</summary>
+          <div class="disclosure-content stack-list">
+            ${roadmap.map((item) => `<div class="compact-card"><span><strong>${escapeHtml(item)}</strong></span></div>`).join("")}
+            <a class="btn secondary" href="#/dev">Открыть инструменты</a>
+          </div>
+        </details>
       </section>
     `;
   },

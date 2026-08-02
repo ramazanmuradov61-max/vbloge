@@ -4,6 +4,7 @@ import { deadlineService } from "../services/deadlineService.js";
 import { riskService } from "../services/riskService.js";
 import { getState } from "../store.js";
 import { escapeHtml, pageHeader, statusBadge } from "../components/ui.js";
+import { icon } from "../components/icons.js";
 
 const productText = (value) =>
   String(value || "")
@@ -14,13 +15,11 @@ const productText = (value) =>
     .replace(/РК/g, "кампания")
     .replace(/рк/g, "кампания");
 
-const recommendationCard = (item) => `
-  <a class="mobile-list-card ai-main-advice" href="${escapeHtml(item.href || "#/ai-manager")}">
-    <span>
-      <strong>${escapeHtml(productText(item.title))}</strong>
-      <small>${escapeHtml(productText(item.text))}</small>
-    </span>
-    <span class="status blue">${escapeHtml(productText(item.action || "Открыть"))}</span>
+const signalRow = ({ title, text, href, status }) => `
+  <a class="assistant-signal" href="${escapeHtml(href)}">
+    <span class="assistant-signal-icon" aria-hidden="true">${icon(status === "Риск" ? "alert" : "calendar", { size: 19 })}</span>
+    <span><strong>${escapeHtml(productText(title))}</strong><small>${escapeHtml(productText(text))}</small></span>
+    ${statusBadge(status)}
   </a>
 `;
 
@@ -31,58 +30,42 @@ export const aiView = {
     const aiHistory = aiService.history();
     const recommendation = aiService.recommendations()[0] || aiCampaignService.overview()[0]?.recommendedAction || {
       title: "Проверьте активные сделки",
-      text: "Срочных рисков нет. Откройте центр действий и проверьте следующий шаг.",
-      href: "#/notifications",
+      text: "Срочных рисков нет. Откройте сделки и проверьте следующий шаг.",
+      href: "#/deals",
       action: "Открыть",
     };
     const risk = riskService.list({ limit: 1 })[0];
     const deadline = deadlineService.list({ limit: 1 })[0];
 
     return `
-      <section class="page ai-home zero-ai-home">
+      <section class="page assistant-page">
         ${pageHeader({
-          eyebrow: "AI",
-          title: "Помощник vbloge",
-          lead: "Одна подсказка на экран. Без лишнего шума.",
-          actions: `<a class="btn" href="#/ai-manager">Открыть AI-план</a><a class="btn secondary" href="#/stats">Аналитика</a>`,
+          title: "Помощник",
+          lead: "Подсказывает следующий шаг по текущей работе.",
+          actions: `<a class="btn" href="#/ai-manager">${icon("ai", { size: 18 })}<span>План кампаний</span></a>`,
         })}
 
-        <section class="card pad ai-live-intro zero-ai-card">
+        <section class="assistant-focus">
+          <span class="assistant-orb" aria-hidden="true">${icon("ai", { size: 23 })}</span>
           <div>
-            <span class="status green">Готов помочь</span>
-            <h2>Что сделать дальше</h2>
+            <small>Сейчас важнее всего</small>
+            <h2>${escapeHtml(productText(recommendation.title))}</h2>
+            <p>${escapeHtml(productText(recommendation.text))}</p>
           </div>
-          ${recommendationCard(recommendation)}
+          <a class="btn" href="${escapeHtml(recommendation.href || "#/ai-manager")}">${escapeHtml(productText(recommendation.action || "Открыть"))}${icon("arrow", { size: 18 })}</a>
         </section>
 
-        <section class="grid cols-2 zero-ai-signals">
-          <a class="compact-card" href="${risk?.href || "#/notifications"}">
-            <span>
-              <strong>${escapeHtml(productText(risk?.title || "Критичных рисков нет"))}</strong>
-              <small>${escapeHtml(productText(risk?.text || "Можно продолжать текущий сценарий."))}</small>
-            </span>
-            ${statusBadge(risk ? "Риск" : "OK")}
-          </a>
-          <a class="compact-card" href="${deadline?.href || "#/calendar"}">
-            <span>
-              <strong>${escapeHtml(productText(deadline?.campaign || "Ближайший дедлайн"))}</strong>
-              <small>${escapeHtml(productText(deadline ? `${deadline.date} · ${deadline.action}` : "Нет срочных дат."))}</small>
-            </span>
-            ${statusBadge(deadline?.status || "План")}
-          </a>
-        </section>
-
-        <section class="card pad">
-          <h2>Быстрые сценарии</h2>
-          <div class="grid cols-3 ai-scenarios">
+        <section class="assistant-actions-section">
+          <div class="section-title"><h2>Что подготовить</h2></div>
+          <div class="assistant-actions">
             ${aiService.scenarios
               .slice(0, 6)
               .map(
-                (scenario) => `
-                  <button class="ai-scenario" type="button" data-ai-scenario="${scenario.id}">
-                    <span class="status blue">AI</span>
-                    <h3>${escapeHtml(productText(scenario.title))}</h3>
-                    <p class="lead">${escapeHtml(productText(scenario.prompt))}</p>
+                (scenario, index) => `
+                  <button class="assistant-action" type="button" data-ai-scenario="${scenario.id}">
+                    <span aria-hidden="true">${icon(index === 0 ? "users" : index === 1 ? "edit" : index === 2 ? "ai" : index === 3 ? "profile" : index === 4 ? "analytics" : "wallet", { size: 19 })}</span>
+                    <strong>${escapeHtml(productText(scenario.title))}</strong>
+                    ${icon("chevron", { size: 17 })}
                   </button>
                 `,
               )
@@ -90,12 +73,30 @@ export const aiView = {
           </div>
         </section>
 
-        <details class="card pad zero-more-panel">
-          <summary>Тонкая настройка</summary>
-          <section class="split">
+        <details class="assistant-details">
+          <summary><span>Риски и ближайшие сроки</span><span>${risk ? "1 риск" : "Все спокойно"}</span>${icon("chevron", { size: 18 })}</summary>
+          <div class="assistant-signals">
+            ${signalRow({
+              title: risk?.title || "Критичных рисков нет",
+              text: risk?.text || "Можно продолжать текущий сценарий.",
+              href: risk?.href || "#/notifications",
+              status: risk ? "Риск" : "Готово",
+            })}
+            ${signalRow({
+              title: deadline?.campaign || "Ближайший дедлайн",
+              text: deadline ? `${deadline.date} · ${deadline.action}` : "Нет срочных дат.",
+              href: deadline?.href || "#/calendar",
+              status: deadline?.status || "План",
+            })}
+          </div>
+        </details>
+
+        <details class="assistant-details zero-more-panel">
+          <summary><span>Тонкая настройка</span><span>${aiHistory.length} в истории</span>${icon("chevron", { size: 18 })}</summary>
+          <section class="assistant-customize">
             <form class="form" id="ai-form">
               <div class="field">
-                <label for="ai-step">Сценарий</label>
+                <label for="ai-step">Задача</label>
                 <select id="ai-step" name="step">
                   ${aiService.scenarios.map((scenario) => `<option value="${scenario.id}">${escapeHtml(productText(scenario.title))}</option>`).join("")}
                 </select>
@@ -118,26 +119,12 @@ export const aiView = {
               </div>
               <button class="btn secondary" type="submit">Сформировать рекомендацию</button>
             </form>
-            <aside>
-              <div class="section-title">
-                <h2>История</h2>
-                ${statusBadge(`${aiHistory.length} записей`)}
-              </div>
-              <div class="stack-list">
-                ${aiHistory
-                  .slice(0, 4)
-                  .map(
-                    (entry) => `
-                      <div class="compact-card">
-                        <span>
-                          <strong>${escapeHtml(productText(entry.step || entry.task))}</strong>
-                          <small>${escapeHtml(productText(entry.result))}</small>
-                        </span>
-                      </div>
-                    `,
-                  )
-                  .join("")}
-              </div>
+            <aside class="assistant-history">
+              <h2>Последние запросы</h2>
+              ${aiHistory
+                .slice(0, 4)
+                .map((entry) => `<div><strong>${escapeHtml(productText(entry.step || entry.task))}</strong><small>${escapeHtml(productText(entry.result))}</small></div>`)
+                .join("") || "<p class=\"lead\">История появится после первого запроса.</p>"}
             </aside>
           </section>
         </details>

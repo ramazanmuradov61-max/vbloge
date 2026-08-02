@@ -1,6 +1,7 @@
 import { scoreService } from "../services/scoreService.js";
 import { getState, isFavorite, toggleFavorite } from "../store.js";
 import { avatar, escapeHtml, money, pageHeader, smartEmptyState } from "../components/ui.js";
+import { icon } from "../components/icons.js";
 
 const productText = (value) =>
   String(value || "")
@@ -32,15 +33,15 @@ export const bloggersView = {
     return `
       <section class="page buyer-blogger-picker">
         ${pageHeader({
-          eyebrow: isBuyer ? "AI подбор" : "Каталог",
-          title: isBuyer ? "Кого пригласить" : "Блогеры",
-          lead: isBuyer ? `Короткий список под кампанию: ${escapeHtml(productText(campaign?.title || "активная кампания"))}.` : "Выберите автора и откройте профиль.",
-          actions: `<a class="btn secondary" href="#/favorites"><span class="tool-icon">★</span>Избранное</a>`,
+          eyebrow: isBuyer ? "Подбор" : "Каталог",
+          title: isBuyer ? "Подходящие блогеры" : "Блогеры",
+          lead: isBuyer ? `Рекомендации для «${escapeHtml(productText(campaign?.title || "активной кампании"))}».` : "Профили, охваты и стоимость размещения.",
+          actions: `<a class="icon-button" href="#/favorites" aria-label="Избранное">${icon("favorite", { size: 19 })}</a>`,
         })}
 
         <section class="mobile-filter-bar buyer-search-strip">
           <label class="mobile-inline-search">
-            <span aria-hidden="true">⌕</span>
+            <span aria-hidden="true">${icon("search", { size: 19 })}</span>
             <input type="search" placeholder="Найти блогера" aria-label="Найти блогера" />
           </label>
           <div class="search-tools">
@@ -67,14 +68,11 @@ export const bloggersView = {
                               <span class="meta">${escapeHtml(blogger.category)} · ${escapeHtml(blogger.city)}</span>
                             </div>
                           </a>
-                          <button class="btn secondary compact" type="button" data-save-creator="${escapeHtml(blogger.id)}" aria-label="Избранное">${isFavorite("bloggers", blogger.id) ? "★" : "☆"}</button>
+                          <button class="icon-button ${isFavorite("bloggers", blogger.id) ? "selected" : ""}" type="button" data-save-creator="${escapeHtml(blogger.id)}" aria-label="${isFavorite("bloggers", blogger.id) ? "Убрать из избранного" : "Добавить в избранное"}">${icon("favorite", { size: 17 })}</button>
                         </div>
 
                         <a class="recommendation-body" href="#/bloggers/${blogger.id}">
-                          <div class="match-ring">
-                            <strong>${match}%</strong>
-                            <span>AI Match</span>
-                          </div>
+                          <div class="match-score"><span>Совпадение</span><strong>${match}%</strong></div>
                           <div class="recommendation-metrics">
                             <span><small>Цена</small><strong>${money(parseMoney(blogger.price))}</strong></span>
                             <span><small>ER</small><strong>${escapeHtml(blogger.engagement)}</strong></span>
@@ -82,7 +80,7 @@ export const bloggersView = {
                         </a>
 
                         <div class="recommendation-footer">
-                          <a class="btn" href="#/bloggers/${blogger.id}">Пригласить</a>
+                          <a class="btn" href="#/bloggers/${blogger.id}" ${isBuyer ? `data-invite-blogger="${escapeHtml(blogger.id)}"` : ""}>${isBuyer ? "Пригласить" : "Открыть профиль"}${icon("arrow", { size: 18 })}</a>
                         </div>
                       </article>
                     `;
@@ -95,6 +93,11 @@ export const bloggersView = {
     `;
   },
   mount({ router }) {
+    document.querySelectorAll("[data-invite-blogger]").forEach((link) => {
+      link.addEventListener("click", () => {
+        window.sessionStorage.setItem("vbloge.openInvite", link.dataset.inviteBlogger);
+      });
+    });
     document.querySelectorAll("[data-save-creator]").forEach((button) => {
       button.addEventListener("click", () => {
         toggleFavorite("bloggers", button.dataset.saveCreator);

@@ -2,6 +2,7 @@ import { scoreService } from "../services/scoreService.js";
 import { permissionService } from "../services/permissionService.js";
 import { createInvitation, getBlogger, getCampaign, getDealsForBlogger, getState, isFavorite, toggleFavorite } from "../store.js";
 import { avatar, emptyState, escapeHtml, money, statusBadge } from "../components/ui.js";
+import { icon } from "../components/icons.js";
 
 const reviewItems = [
   { author: "Nike", text: "Быстро отвечает, интеграция выглядит нативно.", rating: "5.0" },
@@ -15,6 +16,7 @@ export const bloggerDetailView = {
   title: "Паспорт блогера",
   render({ params }) {
     const blogger = getBlogger(params.id);
+
     if (!blogger) return emptyState("Блогер не найден.");
 
     const state = getState();
@@ -22,12 +24,14 @@ export const bloggerDetailView = {
     const campaigns = (blogger.campaignIds || []).map(getCampaign).filter(Boolean);
     const favorite = isFavorite("bloggers", blogger.id);
     const score = scoreService.getBloggerScore(blogger);
-    const latestDeal = bloggerDeals[0];
 
     return `
       <section class="page blogger-mobile-profile">
-        <header class="blogger-buy-card">
-          <a class="back-link" href="#/bloggers">← Блогеры</a>
+        <header class="blogger-buy-card product-detail-hero">
+          <div class="detail-hero-toolbar">
+            <a class="back-link" href="#/bloggers">${icon("back", { size: 18 })}Блогеры</a>
+            <button class="icon-button ${favorite ? "selected" : ""}" type="button" id="favorite-blogger" aria-label="${favorite ? "Убрать из избранного" : "Добавить в избранное"}">${icon("favorite", { size: 18 })}</button>
+          </div>
           <div class="blogger-buy-head">
             ${avatar(blogger.name)}
             <div>
@@ -46,59 +50,47 @@ export const bloggerDetailView = {
             <div><span>Цена от</span><strong>${escapeHtml(blogger.price)}</strong></div>
           </div>
           <p class="lead collapsed-text">${escapeHtml(blogger.tone)}</p>
-          <div class="button-row">
-            <button class="btn" type="button" id="open-invite" ${permissionService.disabledAttr(permissionService.canInvite())}>Пригласить</button>
-            <button class="btn secondary" type="button" id="favorite-blogger">${favorite ? "★ В избранном" : "☆ В избранное"}</button>
-            ${latestDeal ? `<a class="btn secondary" href="#/chat/${latestDeal.chatId}">Написать</a>` : ""}
-          </div>
+          <button class="btn detail-primary-action" type="button" id="open-invite" ${permissionService.disabledAttr(permissionService.canInvite())}><span>Пригласить</span>${icon("arrow", { size: 19 })}</button>
         </header>
 
-        <nav class="mobile-tabs" aria-label="Разделы блогера">
-          <a href="#blogger-overview">Обзор</a>
-          <a href="#blogger-content">Контент</a>
-          <a href="#blogger-stats">Статистика</a>
-          <a href="#blogger-calendar">Календарь</a>
-          <a href="#blogger-reviews">Отзывы</a>
-        </nav>
-
-        <section class="card pad mobile-section" id="blogger-overview">
-          <div class="section-title"><h2>Стоит ли покупать?</h2><span class="status blue">AI анализ</span></div>
+        <section class="product-detail-section blogger-decision" id="blogger-overview">
+          <div class="section-title"><h2>Почему подходит</h2><span class="status blue">${score.score}/100</span></div>
           <div class="stack-list">
-            ${score.recommendations.map((item) => `<div class="mobile-list-card"><span><strong>${escapeHtml(item)}</strong></span></div>`).join("")}
+            ${score.recommendations.slice(0, 1).map((item) => `<div class="inline-ai-tip"><span aria-hidden="true">${icon("ai", { size: 18 })}</span><strong>${escapeHtml(item)}</strong></div>`).join("")}
           </div>
           <div class="button-row">${chipList([blogger.category, ...blogger.channels])}</div>
         </section>
 
-        <section class="card pad mobile-section" id="blogger-content">
-          <h2>Контент</h2>
-          <div class="grid cols-3 portfolio-grid">
-            ${(blogger.portfolio || []).map((item) => `<div class="portfolio-tile"><strong>${escapeHtml(item)}</strong><span>кейс</span></div>`).join("")}
+        <details class="product-disclosure" id="blogger-content">
+          <summary><span><strong>Контент</strong><small>${blogger.portfolio?.length || 0} примера работ</small></span>${icon("chevron", { size: 18 })}</summary>
+          <div class="disclosure-content grid cols-3 portfolio-grid">
+            ${(blogger.portfolio || []).map((item) => `<div class="portfolio-tile"><strong>${escapeHtml(item)}</strong><span>Кейс</span></div>`).join("")}
           </div>
-        </section>
+        </details>
 
-        <section class="card pad mobile-section" id="blogger-stats">
-          <h2>Статистика</h2>
-          <div class="brief-grid">
+        <details class="product-disclosure" id="blogger-stats">
+          <summary><span><strong>Статистика</strong><small>Аудитория и охваты</small></span>${icon("chevron", { size: 18 })}</summary>
+          <div class="disclosure-content brief-grid">
             <div class="brief-block"><span>Аудитория</span><strong>${escapeHtml(blogger.audience)}</strong></div>
             <div class="brief-block"><span>Средний охват</span><strong>${escapeHtml(blogger.avgReach)}</strong></div>
             <div class="brief-block"><span>Сделки</span><strong>${bloggerDeals.length}</strong></div>
             <div class="brief-block"><span>Кампании</span><strong>${campaigns.length}</strong></div>
           </div>
-        </section>
+        </details>
 
-        <section class="card pad mobile-section" id="blogger-calendar">
-          <h2>Календарь</h2>
-          <div class="stack-list">
+        <details class="product-disclosure" id="blogger-calendar">
+          <summary><span><strong>Календарь</strong><small>Ближайшие даты</small></span>${icon("chevron", { size: 18 })}</summary>
+          <div class="disclosure-content stack-list">
             ${(blogger.calendar || []).map((event) => `<div class="mobile-list-card"><span><strong>${escapeHtml(event)}</strong><small>запланировано</small></span>${statusBadge("Дата")}</div>`).join("")}
           </div>
-        </section>
+        </details>
 
-        <section class="card pad mobile-section" id="blogger-reviews">
-          <h2>Отзывы</h2>
-          <div class="stack-list">
+        <details class="product-disclosure" id="blogger-reviews">
+          <summary><span><strong>Отзывы</strong><small>${reviewItems.length} последних</small></span>${icon("chevron", { size: 18 })}</summary>
+          <div class="disclosure-content stack-list">
             ${reviewItems.map((item) => `<div class="mobile-list-card"><span><strong>${escapeHtml(item.author)} · ${item.rating}</strong><small>${escapeHtml(item.text)}</small></span></div>`).join("")}
           </div>
-        </section>
+        </details>
 
         <div class="modal-backdrop" id="invite-modal" hidden>
           <form class="modal card pad form" id="invite-form">
@@ -148,6 +140,13 @@ export const bloggerDetailView = {
     const newBlock = document.querySelector(".invite-new");
     const blogger = getBlogger(params.id);
 
+    if (window.sessionStorage.getItem("vbloge.openInvite") === params.id && permissionService.canInvite()) {
+      window.sessionStorage.removeItem("vbloge.openInvite");
+      requestAnimationFrame(() => {
+        if (modal) modal.hidden = false;
+      });
+    }
+
     document.querySelector("#favorite-blogger")?.addEventListener("click", () => {
       toggleFavorite("bloggers", params.id);
       router.replace(`/bloggers/${params.id}`);
@@ -189,7 +188,7 @@ export const bloggerDetailView = {
         : getCampaign(form.elements.campaignId.value)?.title || "выбранная кампания";
       form.innerHTML = `
         <div class="invite-success">
-          <span aria-hidden="true">✓</span>
+          <span aria-hidden="true">${icon("check", { size: 18 })}</span>
           <h2>Приглашение отправлено</h2>
           <p>${escapeHtml(blogger.name)} получит приглашение по кампании «${escapeHtml(campaignTitle)}». Теперь ожидаем ответ блогера.</p>
           <div class="buyer-next-step">

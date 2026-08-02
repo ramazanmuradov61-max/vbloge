@@ -6,6 +6,7 @@ import { reportService } from "../services/reportService.js";
 import { reviewService } from "../services/reviewService.js";
 import { workflowEngine } from "../services/workflowEngine.js";
 import { emptyState, escapeHtml, money, statusBadge } from "../components/ui.js";
+import { icon } from "../components/icons.js";
 
 const workflowStages = [
   { key: "invite", title: "Приглашение", match: [0, 1] },
@@ -39,7 +40,7 @@ const workflowTimeline = (items) => {
         .map(
           (stage, index) => `
             <div class="workflow-stage ${escapeHtml(stage.state)}">
-              <span aria-hidden="true">${stage.state === "completed" ? "✓" : index + 1}</span>
+              <span aria-hidden="true">${stage.state === "completed" ? icon("check", { size: 14 }) : index + 1}</span>
               <strong>${escapeHtml(stage.title)}</strong>
             </div>
           `,
@@ -68,8 +69,8 @@ const primaryStep = ({ deal, report, isBuyer, canPay, canApprove, canUploadMater
   if (canPay && stageIndex >= 1) {
     return {
       status: "Ожидается действие закупщика",
-      title: "Подтвердите оплату в escrow",
-      text: "После оплаты блогер увидит, что бюджет зафиксирован, и сможет спокойно готовить интеграцию.",
+      title: "Подтвердите безопасную оплату",
+      text: "После оплаты бюджет будет зафиксирован, и блогер сможет начать работу.",
       action: "Подтвердить оплату",
       actionType: "pay",
       owner: "Закупщик",
@@ -154,7 +155,7 @@ const primaryStep = ({ deal, report, isBuyer, canPay, canApprove, canUploadMater
 
 const materialItem = (material) => `
   <a class="workflow-material" href="${escapeHtml(material.url || "#")}" target="_blank" rel="noreferrer">
-    <span class="workflow-material-icon" aria-hidden="true">${material.type === "link" ? "↗" : "PDF"}</span>
+    <span class="workflow-material-icon" aria-hidden="true">${icon(material.type === "link" ? "arrow" : "paperclip", { size: 18 })}</span>
     <span>
       <strong>${safe(material.title)}</strong>
       <small>${safe(material.comment || material.url)}</small>
@@ -164,7 +165,7 @@ const materialItem = (material) => `
 
 const documentItem = (document) => `
   <button class="workflow-material" type="button" data-document-id="${escapeHtml(document.id)}">
-    <span class="workflow-material-icon" aria-hidden="true">DOC</span>
+    <span class="workflow-material-icon" aria-hidden="true">${icon("paperclip", { size: 18 })}</span>
     <span>
       <strong>${safe(document.type)}</strong>
       <small>${safe(document.status)} · ${safe(document.date)}</small>
@@ -182,7 +183,7 @@ const participant = ({ label, name, meta, href }) => `
 
 const feedStatus = (item) => `
   <article class="workflow-feed-item event">
-    <span class="workflow-feed-icon" aria-hidden="true">✓</span>
+    <span class="workflow-feed-icon" aria-hidden="true">${icon("check", { size: 16 })}</span>
     <div>
       <strong>${safe(item.action)}</strong>
       <small>${safe(item.actor)} · ${safe(item.time || item.createdAt)}${item.meta ? ` · ${safe(item.meta)}` : ""}</small>
@@ -246,22 +247,18 @@ export const dealDetailView = {
     const tone = statusTone(deal, report, escrow);
     const dealReviews = reviewService.listForDeal(deal.id);
     const feed = [
-      ...activity.slice(0, 5).map((item) => ({ type: "event", item })),
-      ...messages.slice(-3).map((item) => ({ type: "message", item })),
-      { type: "event", item: { actor: "AI", action: suggestions.important, time: "сейчас", meta: "подсказка" } },
+      ...activity.slice(0, 3).map((item) => ({ type: "event", item })),
+      ...messages.slice(-2).map((item) => ({ type: "message", item })),
     ];
 
     return `
       <section class="page deal-os workflow-screen">
-        <nav class="workflow-nav" aria-label="Навигация сделки">
-          <a class="btn ghost" href="#/deals">Назад</a>
-          <span class="role-chip">${escapeHtml(roleLabel)}</span>
-          <a class="btn ghost" href="#/ai-manager/${deal.campaign.id}">AI-план</a>
-        </nav>
-
         <section class="workflow-hero workflow-card tone-${tone}">
+          <div class="workflow-hero-toolbar">
+            <span class="role-chip">${escapeHtml(roleLabel)}</span>
+            <a class="icon-button" href="#/ai-manager/${deal.campaign.id}" aria-label="Открыть план кампании">${icon("ai", { size: 18 })}</a>
+          </div>
           <div class="workflow-hero-main">
-            <span class="workflow-kicker">Сделка</span>
             <h1>${safe(deal.campaign.title)}</h1>
             <p>${safe(deal.blogger.name)} · ${safe(deal.deliverable)}</p>
             <div class="workflow-badges">
@@ -276,8 +273,6 @@ export const dealDetailView = {
           </div>
         </section>
 
-        ${workflowTimeline(workflow?.timeline)}
-
         <section class="workflow-current workflow-card">
           <div class="workflow-current-copy">
             <span class="workflow-kicker">${escapeHtml(step.status)}</span>
@@ -288,7 +283,19 @@ export const dealDetailView = {
             <span>${escapeHtml(timer.label)}</span>
             <strong>${escapeHtml(timer.value)}</strong>
           </div>
-          <button class="btn workflow-primary-action" type="button" data-primary-action="${escapeHtml(step.actionType)}">${escapeHtml(step.action)}</button>
+          <button class="btn workflow-primary-action" type="button" data-primary-action="${escapeHtml(step.actionType)}"><span>${escapeHtml(step.action)}</span>${icon("arrow", { size: 19 })}</button>
+        </section>
+
+        ${workflowTimeline(workflow?.timeline)}
+
+        <section class="workflow-ai workflow-card">
+          <span class="assistant-orb" aria-hidden="true">${icon("ai", { size: 19 })}</span>
+          <div>
+            <small>Подсказка</small>
+            <strong>${safe(suggestions.important)}</strong>
+            <span>${safe(suggestions.nextBestStep)}</span>
+          </div>
+          <button class="icon-button" type="button" id="ai-generate-message" aria-label="Составить сообщение">${icon("chat", { size: 18 })}</button>
         </section>
 
         <section class="workflow-feed workflow-card" id="workflow-activity">
@@ -380,23 +387,10 @@ export const dealDetailView = {
           </div>
         </details>
 
-        <section class="workflow-card workflow-ai">
-          <div class="workflow-section-head">
-            <div>
-              <span class="workflow-kicker">AI</span>
-              <h2>Подсказка</h2>
-            </div>
-            <button class="btn ghost" type="button" id="ai-check-report">Обновить</button>
-          </div>
-          <p>${safe(suggestions.important)}</p>
-          <small>${safe(suggestions.nextBestStep)}</small>
-          <button class="btn secondary" type="button" id="ai-generate-message">Сгенерировать сообщение</button>
-        </section>
-
         <details class="workflow-card workflow-finance workflow-collapsible">
           <summary>Оплата</summary>
           <div class="workflow-section-head">
-            <div><h2>Escrow</h2></div>
+            <div><h2>Безопасная оплата</h2></div>
             ${statusBadge(escrow.paymentStatus)}
           </div>
           <div class="workflow-finance-grid">

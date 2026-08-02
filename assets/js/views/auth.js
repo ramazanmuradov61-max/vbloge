@@ -2,30 +2,32 @@ import { renderPublicLayout } from "../components/layout.js";
 import { escapeHtml } from "../components/ui.js";
 import { authService } from "../services/authService.js";
 import { demoScenarios, demoService } from "../services/demoService.js";
+import { icon } from "../components/icons.js";
 
 export const authView = {
   title: "Вход в vbloge",
   render() {
     return renderPublicLayout(`
-      <section class="public-demo-card card pad">
+      <section class="public-demo-card public-entry">
         <div class="public-demo-logo">
           <span class="brand-mark">v</span>
           <strong>vbloge</strong>
         </div>
-        <p class="eyebrow">vbloge</p>
-        <h1>Все рекламные интеграции в одном мобильном рабочем пространстве</h1>
-        <p class="lead">Создавайте кампании, выбирайте блогеров, ведите сделки, переписку, оплату и аналитику без регистрации.</p>
-        <div class="button-row">
-          <button class="btn" type="button" id="demo-login"><span class="tool-icon">→</span>Войти в демо</button>
-          <button class="btn secondary" type="button" id="scenario-toggle"><span class="tool-icon">✦</span>Выбрать сценарий</button>
+        <div class="public-entry-copy">
+          <h1>Вся работа с рекламными интеграциями — в одном месте</h1>
+          <p class="lead">Кампании, блогеры, сделки, чат и выплаты в одном мобильном процессе.</p>
+        </div>
+        <div class="public-entry-actions">
+          <button class="btn" type="button" id="demo-login"><span>Войти в демо</span>${icon("arrow", { size: 19 })}</button>
+          <button class="btn ghost" type="button" id="scenario-toggle">Выбрать сценарий</button>
         </div>
         <div class="demo-scenario-picker" id="scenario-picker" hidden>
           ${demoScenarios
             .map(
               (scenario) => `
                 <button class="quick-action" type="button" data-demo-scenario="${scenario.id}">
-                  <strong>${escapeHtml(scenario.title.replace("Demo", "Сценарий"))}</strong>
-                  <span>${escapeHtml(scenario.description || "Запустить готовый сценарий.")}</span>
+                  <span><strong>${escapeHtml(scenario.title.replace("Demo", "Сценарий"))}</strong><small>${escapeHtml(scenario.description || "Запустить готовый сценарий.")}</small></span>
+                  ${icon("chevron", { size: 18 })}
                 </button>
               `,
             )

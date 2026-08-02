@@ -1,5 +1,6 @@
 import { getBlogger, getCampaign, getState, toggleFavorite } from "../store.js";
-import { avatar, emptyState, escapeHtml, money, pageHeader, statusBadge } from "../components/ui.js";
+import { avatar, escapeHtml, money, pageHeader, smartEmptyState, statusBadge } from "../components/ui.js";
+import { icon } from "../components/icons.js";
 
 export const favoritesView = {
   title: "Избранное",
@@ -13,53 +14,51 @@ export const favoritesView = {
     return `
       <section class="page">
         ${pageHeader({
-          eyebrow: "Сохраненное",
           title: "Избранное",
-          lead: isBlogger ? "Блогер сохраняет интересные рекламные кампании." : "Закупщик сохраняет блогеров для быстрых приглашений.",
-          actions: `<a class="btn secondary" href="${isBlogger ? "#/campaigns" : "#/bloggers"}">Добавить</a>`,
+          lead: isBlogger ? "Кампании, к которым хотите вернуться" : "Блогеры для будущих кампаний",
+          actions: `<a class="btn" href="${isBlogger ? "#/campaigns" : "#/bloggers"}">${isBlogger ? "Найти кампанию" : "Найти блогера"}</a>`,
         })}
-        <div class="grid cols-2">
+        <div class="favorites-list">
           ${
             items.length
               ? items
                   .map((item) =>
                     isBlogger
                       ? `
-                        <article class="card pad clickable-card">
-                          <div class="list-item">
-                            <a href="#/campaigns/${item.id}">
-                              <h2>${escapeHtml(item.title)}</h2>
-                              <p class="meta">${escapeHtml(item.brand)} · ${escapeHtml(item.category)}</p>
-                            </a>
-                            <button class="btn secondary compact" type="button" data-remove-campaign="${escapeHtml(item.id)}">★</button>
-                          </div>
-                          <p class="lead">${escapeHtml(item.goal || item.description)}</p>
-                          <div class="list-item"><span>${money(item.budget)}</span>${statusBadge(item.status)}</div>
+                        <article class="favorite-row">
+                          <a class="favorite-main" href="#/campaigns/${item.id}">
+                            <span>
+                              <strong>${escapeHtml(item.title)}</strong>
+                              <small>${escapeHtml(item.brand)} · ${escapeHtml(item.deadline || "Дедлайн не задан")}</small>
+                            </span>
+                            <span class="favorite-meta"><strong>${money(item.budget)}</strong>${statusBadge(item.status)}</span>
+                          </a>
+                          <button class="icon-btn is-active" type="button" data-remove-campaign="${escapeHtml(item.id)}" aria-label="Убрать из избранного">${icon("favorite", { size: 18 })}</button>
                         </article>
                       `
                       : `
-                        <article class="card pad clickable-card">
-                          <div class="list-item">
-                            <a class="person" href="#/bloggers/${item.id}">
-                              ${avatar(item.name)}
-                              <span class="person-text">
-                                <strong>${escapeHtml(item.name)}</strong>
-                                <span class="meta">${escapeHtml(item.category)} · ${escapeHtml(item.city)}</span>
-                              </span>
-                            </a>
-                            <button class="btn secondary compact" type="button" data-remove-blogger="${escapeHtml(item.id)}">★</button>
-                          </div>
-                          <p class="lead">${escapeHtml(item.tone)}</p>
-                          <div class="grid cols-3">
-                            <div><span class="metric-label">ER</span><strong>${escapeHtml(item.engagement)}</strong></div>
-                            <div><span class="metric-label">CPM</span><strong>${escapeHtml(item.cpm)}</strong></div>
-                            <div><span class="metric-label">Охват</span><strong>${escapeHtml(item.avgReach)}</strong></div>
-                          </div>
+                        <article class="favorite-row">
+                          <a class="favorite-main person" href="#/bloggers/${item.id}">
+                            ${avatar(item.name)}
+                            <span class="person-text">
+                              <strong>${escapeHtml(item.name)}</strong>
+                              <small>${escapeHtml(item.category)} · ER ${escapeHtml(item.engagement)}</small>
+                            </span>
+                            <span class="favorite-price">${escapeHtml(item.price || "Цена по запросу")}</span>
+                          </a>
+                          <button class="icon-btn is-active" type="button" data-remove-blogger="${escapeHtml(item.id)}" aria-label="Убрать из избранного">${icon("favorite", { size: 18 })}</button>
                         </article>
                       `,
                   )
                   .join("")
-              : emptyState(isBlogger ? "Сохраненных кампаний пока нет." : "Сохраненных блогеров пока нет.")
+              : smartEmptyState({
+                  title: "Пока ничего не сохранено",
+                  text: isBlogger ? "Отмечайте интересные кампании, чтобы быстро к ним вернуться." : "Сохраняйте блогеров для будущих приглашений.",
+                  action: {
+                    href: isBlogger ? "#/campaigns" : "#/bloggers",
+                    label: isBlogger ? "Смотреть кампании" : "Смотреть блогеров",
+                  },
+                })
           }
         </div>
       </section>
