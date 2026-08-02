@@ -1,6 +1,7 @@
 import { addMessage, enrichDeal, getChat, getDeal, getMessages, getState } from "../store.js";
-import { avatar, emptyState, escapeHtml, money, pageHeader, statusBadge } from "../components/ui.js";
+import { emptyState, escapeHtml, money, pageHeader, statusBadge } from "../components/ui.js";
 import { icon } from "../components/icons.js";
+import { campaignThumbnail, profileAvatar } from "../components/premium.js";
 
 const productText = (value) =>
   String(value || "")
@@ -18,7 +19,7 @@ const renderThread = (thread) => {
     <header class="conversation-header">
       <a class="icon-button" href="#/chat" aria-label="К списку диалогов">${icon("back", { size: 21 })}</a>
       <div class="conversation-person">
-        ${avatar(productText(thread.title))}
+        ${profileAvatar({ person: deal?.blogger || { id: thread.bloggerId, name: thread.title }, name: deal?.blogger?.name || productText(thread.title), size: "sm", online: true, loading: "eager" })}
         <span>
           <strong>${escapeHtml(productText(thread.title))}</strong>
           <small>${escapeHtml(productText(deal?.campaign?.title || thread.subtitle))}</small>
@@ -29,7 +30,8 @@ const renderThread = (thread) => {
     ${
       deal
         ? `<a class="conversation-deal-bar" href="#/deals/${deal.id}">
-            <span><small>Сделка</small><strong>${money(deal.amount)} · ${escapeHtml(deal.due || "без срока")}</strong></span>
+            ${campaignThumbnail({ campaign: deal.campaign, className: "conversation-campaign-thumb", loading: "eager" })}
+            <span><small>${escapeHtml(productText(deal.campaign.title))}</small><strong>${money(deal.amount)} · ${escapeHtml(deal.due || "без срока")}</strong></span>
             <span>Открыть${icon("chevron", { size: 16 })}</span>
           </a>`
         : ""
@@ -56,20 +58,24 @@ const renderThread = (thread) => {
 const renderThreadList = (chatThreads) => `
   <div class="conversation-list">
     ${chatThreads
-      .map((thread) => {
+      .map((thread, index) => {
         const deal = enrichDeal(getDeal(thread.dealId));
         const messages = getMessages(thread.id);
         const lastMessage = messages[messages.length - 1];
+        const unread = !lastMessage?.mine;
+        const searchValue = `${thread.title} ${deal?.campaign?.title || ""} ${lastMessage?.text || ""}`.toLowerCase();
         return `
-          <a class="conversation-list-item" href="#/chat/${thread.id}">
-            ${avatar(productText(thread.title))}
+          <a class="conversation-list-item ${index === 0 ? "featured-thread" : ""}" href="#/chat/${thread.id}" data-thread-row data-thread-search="${escapeHtml(searchValue)}" data-thread-unread="${unread}" data-thread-deal="${Boolean(deal)}">
+            ${index === 0 && deal?.campaign
+              ? campaignThumbnail({ campaign: deal.campaign, className: "conversation-list-cover" })
+              : profileAvatar({ person: deal?.blogger || { id: thread.bloggerId, name: thread.title }, name: deal?.blogger?.name || productText(thread.title), size: "md", online: index < 3 })}
             <span class="conversation-list-copy">
               <strong>${escapeHtml(productText(thread.title))}</strong>
               <small>${escapeHtml(productText(lastMessage?.text || deal?.campaign?.title || thread.subtitle))}</small>
             </span>
             <span class="conversation-list-meta">
               <small>${escapeHtml(lastMessage?.time || "")}</small>
-              ${icon("chevron", { size: 17 })}
+              ${unread ? `<b class="unread-badge">1</b>` : icon("chevron", { size: 17 })}
             </span>
           </a>
         `;
@@ -91,8 +97,13 @@ export const chatView = {
           ${pageHeader({ title: "Сообщения", lead: `${chatThreads.length} активных диалога` })}
           <label class="mobile-inline-search conversation-search">
             <span aria-hidden="true">${icon("search", { size: 19 })}</span>
-            <input type="search" placeholder="Найти диалог" aria-label="Найти диалог" />
+            <input type="search" placeholder="Найти диалог" aria-label="Найти диалог" data-thread-search-input />
           </label>
+          <div class="chat-filter-chips" aria-label="Фильтр сообщений">
+            <button class="search-chip active" type="button" data-thread-filter="all">Все</button>
+            <button class="search-chip" type="button" data-thread-filter="deals">Сделки</button>
+            <button class="search-chip" type="button" data-thread-filter="unread">Новые</button>
+          </div>
           ${renderThreadList(chatThreads)}
         </section>
       `;
@@ -105,6 +116,29 @@ export const chatView = {
     `;
   },
   mount({ router }) {
+    const searchInput = document.querySelector("[data-thread-search-input]");
+    const filterButtons = [...document.querySelectorAll("[data-thread-filter]")];
+    const rows = [...document.querySelectorAll("[data-thread-row]")];
+    let activeFilter = "all";
+    const applyFilters = () => {
+      const query = searchInput?.value.trim().toLowerCase() || "";
+      rows.forEach((row) => {
+        const matchesSearch = !query || row.dataset.threadSearch.includes(query);
+        const matchesFilter = activeFilter === "all"
+          || (activeFilter === "unread" && row.dataset.threadUnread === "true")
+          || (activeFilter === "deals" && row.dataset.threadDeal === "true");
+        row.hidden = !(matchesSearch && matchesFilter);
+      });
+    };
+    searchInput?.addEventListener("input", applyFilters);
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        activeFilter = button.dataset.threadFilter;
+        filterButtons.forEach((item) => item.classList.toggle("active", item === button));
+        applyFilters();
+      });
+    });
+
     const windowNode = document.querySelector("[data-chat-window]");
     windowNode?.addEventListener("submit", (event) => {
       const form = event.target.closest("[data-chat-form]");

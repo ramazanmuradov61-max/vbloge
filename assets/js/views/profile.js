@@ -3,8 +3,9 @@ import { companyService } from "../services/companyService.js";
 import { reviewService } from "../services/reviewService.js";
 import { scoreService } from "../services/scoreService.js";
 import { getBlogger, getDealsForBlogger, getState, setRole } from "../store.js";
-import { avatar, escapeHtml, money, pageHeader, statusBadge } from "../components/ui.js";
+import { escapeHtml, money, pageHeader, statusBadge } from "../components/ui.js";
 import { icon } from "../components/icons.js";
+import { campaignThumbnail, portfolioCard, profileAvatar } from "../components/premium.js";
 
 const disclosure = ({ title, meta, content, open = false }) => `
   <details class="product-disclosure" ${open ? "open" : ""}>
@@ -59,7 +60,7 @@ export const profileView = {
         `
       : `
           <div class="stack-list">
-            ${company.campaigns.map((campaign) => `<a class="compact-card" href="#/campaigns/${campaign.id}"><span><strong>${escapeHtml(campaign.title)}</strong><small>${money(campaign.budget)} · ${escapeHtml(campaign.status)}</small></span>${statusBadge(campaign.status)}</a>`).join("")}
+            ${company.campaigns.map((campaign) => `<a class="compact-card profile-campaign-row" href="#/campaigns/${campaign.id}">${campaignThumbnail({ campaign, className: "profile-campaign-thumb" })}<span><strong>${escapeHtml(campaign.title)}</strong><small>${money(campaign.budget)} · ${escapeHtml(campaign.status)}</small></span>${statusBadge(campaign.status)}</a>`).join("")}
           </div>
         `;
 
@@ -82,7 +83,7 @@ export const profileView = {
 
         <section class="profile-identity">
           <div class="profile-identity-head">
-            ${avatar(user.name)}
+            ${profileAvatar({ person: isBlogger ? blogger : { id: "anna-morozova", name: user.name }, name: isBlogger ? blogger.name : company.company.name, size: "xl", verified: true, online: true, loading: "eager" })}
             <span><h1>${escapeHtml(isBlogger ? blogger.name : company.company.name)}</h1><small>${escapeHtml(roleLabel)} · ${escapeHtml(isBlogger ? blogger.city : user.company)}</small></span>
             ${statusBadge(isBlogger ? blogger.status : `Рейтинг ${company.rating}`)}
           </div>
@@ -104,7 +105,7 @@ export const profileView = {
         </section>
 
         ${disclosure({ title: isBlogger ? "О профиле" : "О компании", meta: isBlogger ? "Аудитория и направления" : "Описание и финансы", content: overviewContent, open: true })}
-        ${isBlogger ? disclosure({ title: "Портфолио", meta: `${bloggerPortfolio.length} кейса`, content: `<div class="grid cols-3 portfolio-grid">${bloggerPortfolio.map((item) => `<div class="portfolio-tile"><strong>${escapeHtml(item)}</strong><span>Кейс</span></div>`).join("")}</div>` }) : ""}
+        ${isBlogger ? disclosure({ title: "Портфолио", meta: `${bloggerPortfolio.length} кейса`, content: `<div class="grid cols-3 portfolio-grid">${bloggerPortfolio.map((item, index) => portfolioCard({ title: item, meta: ["120 тыс. просмотров", "85 тыс. просмотров", "95 тыс. просмотров"][index % 3], imageKey: ["summer-fragrance", "nike-sneakers", "app-launch"][index % 3], href: "#/profile" })).join("")}</div>` }) : ""}
         ${disclosure({ title: isBlogger ? "Сделки" : "Кампании", meta: isBlogger ? `${bloggerDeals.length} в истории` : `${company.campaigns.length} активных`, content: workContent })}
         ${disclosure({ title: "Отзывы", meta: isBlogger ? `${bloggerReviews.length} последних` : `${company.reviews.length} последних`, content: reviewsContent })}
         ${isBlogger

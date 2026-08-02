@@ -44,7 +44,6 @@ export const navItems = [
 export const mobileNavItems = [
   { path: "/home", label: "Главная", icon: "home" },
   { path: "/campaigns", label: "Кампании", icon: "campaigns" },
-  { path: "/deals", label: "Сделки", icon: "deals" },
   { path: "/chat", label: "Чаты", icon: "chat" },
   { path: "/profile", label: "Профиль", icon: "profile" },
 ];

@@ -1,5 +1,6 @@
 import { createRouter } from "./router.js";
-import { renderShell } from "./components/layout.js";
+import { mountShell, renderShell } from "./components/layout.js";
+import { bindMediaFallbacks } from "./components/premium.js";
 import { emptyState } from "./components/ui.js";
 import { getState } from "./store.js";
 import { authView } from "./views/auth.js";
@@ -75,11 +76,18 @@ const router = createRouter({
     const view = route.view;
     document.title = `${view.title || "vbloge"} · vbloge`;
     const content = view.render({ params, path, router });
-    app.innerHTML = route.public ? content : renderShell({ currentPath: path, content });
-    view.mount?.({ params, path, router });
-    const savedScroll = window.vblogeScrollPositions?.[path];
-    window.vblogePreviousPath = path;
-    requestAnimationFrame(() => window.scrollTo({ top: savedScroll || 0, behavior: "auto" }));
+    const renderRoute = () => {
+      app.innerHTML = route.public ? content : renderShell({ currentPath: path, content });
+      if (route.public) bindMediaFallbacks(document);
+      else mountShell();
+      view.mount?.({ params, path, router });
+      const savedScroll = window.vblogeScrollPositions?.[path];
+      window.vblogePreviousPath = path;
+      requestAnimationFrame(() => window.scrollTo({ top: savedScroll || 0, behavior: "auto" }));
+    };
+    const shouldTransition = document.startViewTransition && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (shouldTransition) document.startViewTransition(renderRoute);
+    else renderRoute();
   },
 });
 

@@ -6,11 +6,25 @@ Product strategy document: [docs/VBLOGE_BLUEPRINT_2026.md](docs/VBLOGE_BLUEPRINT
 
 The blueprint describes vbloge as a mobile operating system for influencer marketing: CRM, marketplace, AI campaign manager, Deal OS, chat, calendar, payments, analytics, and documents in one product.
 
+## Premium Visual System
+
+The premium visual rebuild keeps the existing Store, Router, Service Layer, permissions, demo scenarios, and localStorage flows intact while bringing the product closer to a native mobile workspace.
+
+- Added a shared presentation layer in `assets/js/components/premium.js`: Premium Hero, image thumbnails, profile avatars, status widgets, metric widgets, portfolio cards, AI suggestion cards, animated timeline, and floating navigation.
+- Rebuilt Home, campaigns, campaign detail, blogger catalog/profile, deals, Deal Room, chats, and buyer/blogger profile around compact image-led cards and one visible next action.
+- Added local optimized media for campaign themes and people. Images reserve their layout with `aspect-ratio`, load lazily outside the first viewport, and fall back to initials when unavailable.
+- Mobile navigation is now a floating five-slot widget: Home, Campaigns, a raised contextual create button, Chats, and Profile. The center button opens a role-aware action sheet.
+- Deal Room now combines an image-led deal hero, six-stage visual timeline, current step, one primary action, activity, materials, protected payment widget, and one AI hint.
+- Motion uses CSS transforms, opacity, and the View Transitions API only. `prefers-reduced-motion` disables nonessential transitions.
+- Safe areas, fixed navigation spacing, Russian text wrapping, dates, amounts, and media fallbacks are covered by the shared mobile CSS layer.
+
+No additional UI, animation, or 3D dependencies were introduced; the static bundle remains unchanged in architecture and deployment model.
+
 ## Unified Mobile Product Experience
 
 The current interface pass keeps the existing Store, Router, Service Layer, permissions, and workflows while rebuilding the presentation as one mobile product system.
 
-- Five stable primary destinations: Home, Campaigns, Deals, Chats, and Profile.
+- Four stable primary destinations plus a contextual center action: Home, Campaigns, Chats, and Profile.
 - One visual language for navigation, icons, buttons, cards, statuses, disclosures, empty states, and contextual headers.
 - Home, campaign creation, blogger selection, Deal OS, chat, AI planning, finance, analytics, company, calendar, invitations, and favorites prioritize one next action.
 - Secondary information is progressively disclosed instead of competing with the current task.

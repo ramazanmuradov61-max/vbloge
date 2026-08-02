@@ -26,14 +26,35 @@ export const initials = (name = "") =>
 
 export const avatar = (name) => `<span class="avatar" aria-hidden="true">${escapeHtml(initials(name))}</span>`;
 
+const STATUS_LABELS = {
+  Escrow: "Средства защищены",
+  Pending: "Ожидает ответа",
+  Accepted: "Принято",
+  Declined: "Отклонено",
+  Draft: "Черновик",
+  "Invitation Sent": "Приглашение отправлено",
+  "In Progress": "В работе",
+  "Report Submitted": "Отчет отправлен",
+  "Revision Requested": "Нужны правки",
+  Approved: "Утверждено",
+  Published: "Опубликовано",
+  Completed: "Завершена",
+  Reviewed: "Отзыв оставлен",
+};
+
+export const humanStatus = (status = "") => STATUS_LABELS[status] || status;
+
 export const statusColor = (status = "") => {
-  if (/провер|актив|опла|зачис|подпис|заверш|accepted|прочит|готов|success/i.test(status)) return "green";
-  if (/подбор|соглас|бриф|escrow|работ|анализ/i.test(status)) return "blue";
-  if (/ожида|резерв|ответ|сценар|pending|нов|loading/i.test(status)) return "amber";
+  const value = `${status} ${humanStatus(status)}`;
+  if (/отклон|правк|ошиб|проблем|declined|revision|danger|error/i.test(value)) return "rose";
+  if (/провер|актив|опла|зачис|подпис|заверш|принят|утверж|опублик|reviewed|accepted|прочит|готов|success/i.test(value)) return "green";
+  if (/подбор|соглас|бриф|escrow|защищ|работ|анализ|приглашение отправлено|in progress|invitation sent/i.test(value)) return "blue";
+  if (/ожида|резерв|ответ|сценар|pending|нов|loading|report submitted/i.test(value)) return "amber";
+  if (/чернов|draft/i.test(value)) return "gray";
   return "rose";
 };
 
-export const statusBadge = (status) => `<span class="status ${statusColor(status)}">${escapeHtml(status)}</span>`;
+export const statusBadge = (status) => `<span class="status ${statusColor(status)}">${escapeHtml(humanStatus(status))}</span>`;
 
 export const button = ({ label, href = "", variant = "primary", type = "button", attrs = "", iconName = "" }) => {
   const classes = ["btn", variant !== "primary" ? variant : ""].filter(Boolean).join(" ");

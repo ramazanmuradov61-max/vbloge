@@ -1,8 +1,9 @@
 import { scoreService } from "../services/scoreService.js";
 import { permissionService } from "../services/permissionService.js";
 import { createInvitation, getBlogger, getCampaign, getDealsForBlogger, getState, isFavorite, toggleFavorite } from "../store.js";
-import { avatar, emptyState, escapeHtml, money, statusBadge } from "../components/ui.js";
+import { emptyState, escapeHtml, money, statusBadge } from "../components/ui.js";
 import { icon } from "../components/icons.js";
+import { portfolioCard, profileAvatar } from "../components/premium.js";
 
 const reviewItems = [
   { author: "Nike", text: "Быстро отвечает, интеграция выглядит нативно.", rating: "5.0" },
@@ -33,7 +34,7 @@ export const bloggerDetailView = {
             <button class="icon-button ${favorite ? "selected" : ""}" type="button" id="favorite-blogger" aria-label="${favorite ? "Убрать из избранного" : "Добавить в избранное"}">${icon("favorite", { size: 18 })}</button>
           </div>
           <div class="blogger-buy-head">
-            ${avatar(blogger.name)}
+            ${profileAvatar({ person: blogger, size: "xl", verified: true, loading: "eager" })}
             <div>
               <p class="eyebrow">${escapeHtml(blogger.category)} · ${escapeHtml(blogger.city)}</p>
               <h1>${escapeHtml(blogger.name)}</h1>
@@ -64,7 +65,7 @@ export const bloggerDetailView = {
         <details class="product-disclosure" id="blogger-content">
           <summary><span><strong>Контент</strong><small>${blogger.portfolio?.length || 0} примера работ</small></span>${icon("chevron", { size: 18 })}</summary>
           <div class="disclosure-content grid cols-3 portfolio-grid">
-            ${(blogger.portfolio || []).map((item) => `<div class="portfolio-tile"><strong>${escapeHtml(item)}</strong><span>Кейс</span></div>`).join("")}
+            ${(blogger.portfolio || []).map((item, index) => portfolioCard({ title: item, meta: index === 0 ? "120 тыс. просмотров" : index === 1 ? "85 тыс. просмотров" : "95 тыс. просмотров", imageKey: ["summer-fragrance", "nike-sneakers", "app-launch"][index % 3], href: `#/bloggers/${blogger.id}` })).join("")}
           </div>
         </details>
 

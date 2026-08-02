@@ -2,6 +2,7 @@ import { getBlogger, getCampaign, getDealsForCampaign, isFavorite, toggleFavorit
 import { aiCampaignService } from "../services/aiCampaignService.js";
 import { emptyState, escapeHtml, money, progressBar, statusBadge } from "../components/ui.js";
 import { icon } from "../components/icons.js";
+import { campaignThumbnail, profileAvatar } from "../components/premium.js";
 
 const productText = (value) =>
   String(value || "")
@@ -40,12 +41,15 @@ export const campaignDetailView = {
             <a class="back-link" href="#/campaigns">${icon("back", { size: 18 })}Кампании</a>
             <button class="icon-button ${favorite ? "selected" : ""}" type="button" id="favorite-campaign" aria-label="${favorite ? "Убрать из избранного" : "Добавить в избранное"}">${icon("favorite", { size: 18 })}</button>
           </div>
+          <div class="campaign-detail-cover">
+            ${campaignThumbnail({ campaign, className: "campaign-detail-media", loading: "eager" })}
+            <span class="campaign-detail-cover-status">${statusBadge(campaign.status)}</span>
+          </div>
           <div class="mobile-detail-heading">
             <div>
               <p class="page-context">${escapeHtml(campaign.brand)}</p>
               <h1>${escapeHtml(productText(campaign.title))}</h1>
             </div>
-            ${statusBadge(campaign.status)}
           </div>
           <div class="detail-facts">
             <div><span>Бюджет</span><strong>${money(campaign.budget)}</strong></div>
@@ -85,7 +89,7 @@ export const campaignDetailView = {
           <div class="stack-list">
             ${
               bloggers.length
-                ? bloggers.slice(0, 3).map((blogger) => `<a class="mobile-list-card" href="#/bloggers/${blogger.id}"><span><strong>${escapeHtml(blogger.name)}</strong><small>${escapeHtml(blogger.category)} · ER ${escapeHtml(blogger.engagement)}</small></span><span class="list-card-tail">${icon("chevron", { size: 17 })}</span></a>`).join("")
+                ? bloggers.slice(0, 3).map((blogger) => `<a class="mobile-list-card media-list-card" href="#/bloggers/${blogger.id}">${profileAvatar({ person: blogger, size: "sm", verified: true })}<span><strong>${escapeHtml(blogger.name)}</strong><small>${escapeHtml(blogger.category)} · ER ${escapeHtml(blogger.engagement)}</small></span><span class="list-card-tail">${icon("chevron", { size: 17 })}</span></a>`).join("")
                 : `<a class="mobile-list-card zero-empty-prompt" href="#/bloggers"><span><strong>Блогеры еще не выбраны</strong><small>Подберите авторов под бюджет и аудиторию.</small></span><span class="list-card-tail">${icon("arrow", { size: 18 })}</span></a>`
             }
           </div>

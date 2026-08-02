@@ -1,7 +1,8 @@
 import { scoreService } from "../services/scoreService.js";
 import { getState, isFavorite, toggleFavorite } from "../store.js";
-import { avatar, escapeHtml, money, pageHeader, smartEmptyState } from "../components/ui.js";
+import { escapeHtml, money, pageHeader, smartEmptyState } from "../components/ui.js";
 import { icon } from "../components/icons.js";
+import { profileAvatar } from "../components/premium.js";
 
 const productText = (value) =>
   String(value || "")
@@ -62,7 +63,7 @@ export const bloggersView = {
                       <article class="blogger-recommendation-card clickable-card">
                         <div class="recommendation-head">
                           <a class="person" href="#/bloggers/${blogger.id}">
-                            ${avatar(blogger.name)}
+                            ${profileAvatar({ person: blogger, size: "lg", verified: /провер/i.test(blogger.status || "") })}
                             <div class="person-text">
                               <strong>${escapeHtml(blogger.name)}</strong>
                               <span class="meta">${escapeHtml(blogger.category)} · ${escapeHtml(blogger.city)}</span>

@@ -4,9 +4,9 @@ import { escrowService } from "../services/escrowService.js";
 import { permissionService } from "../services/permissionService.js";
 import { reportService } from "../services/reportService.js";
 import { reviewService } from "../services/reviewService.js";
-import { workflowEngine } from "../services/workflowEngine.js";
 import { emptyState, escapeHtml, money, statusBadge } from "../components/ui.js";
 import { icon } from "../components/icons.js";
+import { animatedTimeline, campaignThumbnail, profileAvatar } from "../components/premium.js";
 
 const workflowStages = [
   { key: "invite", title: "Приглашение", match: [0, 1] },
@@ -30,24 +30,6 @@ const countdown = (deal) => {
   const label = Number(deal.stageIndex || 0) >= 5 ? "До оплаты" : "До публикации";
   const value = Number(deal.stageIndex || 0) >= 5 ? "5 часов" : "2 дня";
   return { label, value };
-};
-
-const workflowTimeline = (items) => {
-  const stages = items?.length ? items : workflowStages.map((stage, index) => ({ ...stage, state: index === 0 ? "current" : "upcoming" }));
-  return `
-    <section class="workflow-timeline" aria-label="Прогресс сделки">
-      ${stages
-        .map(
-          (stage, index) => `
-            <div class="workflow-stage ${escapeHtml(stage.state)}">
-              <span aria-hidden="true">${stage.state === "completed" ? icon("check", { size: 14 }) : index + 1}</span>
-              <strong>${escapeHtml(stage.title)}</strong>
-            </div>
-          `,
-        )
-        .join("")}
-    </section>
-  `;
 };
 
 const primaryStep = ({ deal, report, isBuyer, canPay, canApprove, canUploadMaterials, canUploadReport, canReview, canWithdraw }) => {
@@ -173,11 +155,11 @@ const documentItem = (document) => `
   </button>
 `;
 
-const participant = ({ label, name, meta, href }) => `
+const participant = ({ label, name, meta, href, person, online = false }) => `
   <a class="workflow-participant" href="${href}">
-    <span>${escapeHtml(label)}</span>
-    <strong>${escapeHtml(name)}</strong>
-    <small>${escapeHtml(meta || "")}</small>
+    ${profileAvatar({ person: person || { name }, name, size: "sm", verified: label !== "AI", online })}
+    <span><small>${escapeHtml(label)}</small><strong>${escapeHtml(name)}</strong><em>${escapeHtml(meta || "")}</em></span>
+    ${icon("chevron", { size: 17 })}
   </a>
 `;
 
@@ -242,9 +224,17 @@ export const dealDetailView = {
     const canReplyChat = permissionService.canReplyChat(deal);
     const canWithdraw = permissionService.canWithdraw(deal);
     const step = primaryStep({ deal, report, isBuyer, canPay, canApprove, canUploadMaterials, canUploadReport, canReview, canWithdraw });
-    const workflow = workflowEngine.deal(deal);
     const timer = countdown(deal);
     const tone = statusTone(deal, report, escrow);
+    const effectiveStageIndex = Number.isFinite(Number(currentStageIndex)) ? Number(currentStageIndex) : Number(deal.stageIndex || 0);
+    const compactTimeline = workflowStages.map((stage) => ({
+      title: stage.title,
+      state: stage.match.includes(effectiveStageIndex)
+        ? "current"
+        : Math.max(...stage.match) < effectiveStageIndex
+          ? "completed"
+          : "upcoming",
+    }));
     const dealReviews = reviewService.listForDeal(deal.id);
     const feed = [
       ...activity.slice(0, 3).map((item) => ({ type: "event", item })),
@@ -258,12 +248,15 @@ export const dealDetailView = {
             <span class="role-chip">${escapeHtml(roleLabel)}</span>
             <a class="icon-button" href="#/ai-manager/${deal.campaign.id}" aria-label="Открыть план кампании">${icon("ai", { size: 18 })}</a>
           </div>
-          <div class="workflow-hero-main">
-            <h1>${safe(deal.campaign.title)}</h1>
-            <p>${safe(deal.blogger.name)} · ${safe(deal.deliverable)}</p>
-            <div class="workflow-badges">
-              ${statusBadge(deal.status)}
-              <span class="status ${tone}">${escapeHtml(step.owner)}</span>
+          <div class="workflow-hero-content">
+            ${campaignThumbnail({ campaign: deal.campaign, className: "workflow-hero-media", loading: "eager" })}
+            <div class="workflow-hero-main">
+              <h1>${safe(deal.campaign.title)}</h1>
+              <p>${profileAvatar({ person: deal.blogger, size: "xs", online: true })}${safe(deal.blogger.name)} · ${safe(deal.deliverable)}</p>
+              <div class="workflow-badges">
+                ${statusBadge(deal.status)}
+                <span class="status ${tone}">${escapeHtml(step.owner)}</span>
+              </div>
             </div>
           </div>
           <div class="workflow-hero-facts">
@@ -286,7 +279,7 @@ export const dealDetailView = {
           <button class="btn workflow-primary-action" type="button" data-primary-action="${escapeHtml(step.actionType)}"><span>${escapeHtml(step.action)}</span>${icon("arrow", { size: 19 })}</button>
         </section>
 
-        ${workflowTimeline(workflow?.timeline)}
+        ${animatedTimeline(compactTimeline)}
 
         <section class="workflow-ai workflow-card">
           <span class="assistant-orb" aria-hidden="true">${icon("ai", { size: 19 })}</span>
@@ -381,9 +374,9 @@ export const dealDetailView = {
         <details class="workflow-card workflow-collapsible">
           <summary>Участники</summary>
           <div class="workflow-participants">
-            ${participant({ label: "Закупщик", name: "Анна Морозова", meta: deal.campaign.brand, href: "#/company" })}
-            ${participant({ label: "Блогер", name: deal.blogger.name, meta: `${deal.blogger.category || "Creator"} · ${deal.blogger.engagement || ""}`, href: `#/bloggers/${deal.blogger.id}` })}
-            ${participant({ label: "AI", name: "Помощник", meta: "следит за рисками и дедлайнами", href: "#/ai" })}
+            ${participant({ label: "Закупщик", name: "Анна Морозова", meta: deal.campaign.brand, href: "#/company", person: { id: "anna-morozova", name: "Анна Морозова" }, online: true })}
+            ${participant({ label: "Блогер", name: deal.blogger.name, meta: `${deal.blogger.category || "Автор"} · ${deal.blogger.engagement || ""}`, href: `#/bloggers/${deal.blogger.id}`, person: deal.blogger, online: true })}
+            ${participant({ label: "AI", name: "Помощник", meta: "следит за рисками и сроками", href: "#/ai", person: { id: "vbloge-ai", name: "AI" } })}
           </div>
         </details>
 
@@ -392,6 +385,10 @@ export const dealDetailView = {
           <div class="workflow-section-head">
             <div><h2>Безопасная оплата</h2></div>
             ${statusBadge(escrow.paymentStatus)}
+          </div>
+          <div class="escrow-premium-widget" aria-hidden="true">
+            <span class="escrow-object"><i></i><i></i><b>₽</b></span>
+            <span><small>Средства защищены</small><strong>${money(escrow.frozen || escrow.amount)}</strong></span>
           </div>
           <div class="workflow-finance-grid">
             <div><span>Сумма</span><strong>${money(escrow.amount)}</strong></div>

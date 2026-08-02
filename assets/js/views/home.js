@@ -1,8 +1,9 @@
 import { actionCenterService } from "../services/actionCenterService.js";
 import { automationService } from "../services/automationService.js";
 import { enrichDeal, getState, setRole } from "../store.js";
-import { escapeHtml, money, statusBadge } from "../components/ui.js";
+import { escapeHtml } from "../components/ui.js";
 import { icon } from "../components/icons.js";
+import { aiSuggestionCard, dealStatusWidget, premiumHero, profileAvatar } from "../components/premium.js";
 
 const productText = (value) =>
   String(value || "")
@@ -52,18 +53,6 @@ const iconForAction = (href, fallback) => {
   return icon("arrow", { size: 20 });
 };
 
-const smartHero = ({ kicker, title, text, href, action }) => `
-  <section class="smart-hero zero-home-hero">
-    <span class="smart-hero-icon" aria-hidden="true">${icon("alert", { size: 21 })}</span>
-    <div>
-      <span>${escapeHtml(productText(kicker))}</span>
-      <strong>${escapeHtml(productText(title))}</strong>
-      <p>${escapeHtml(productText(text))}</p>
-    </div>
-    <a class="btn" href="${escapeHtml(href)}">${escapeHtml(productText(action))}${icon("arrow", { size: 18 })}</a>
-  </section>
-`;
-
 const actionCenterItem = (item) => `
   <a class="action-center-card ${escapeHtml(item.tone)}" href="${escapeHtml(item.href)}">
     <span class="action-center-icon" aria-hidden="true">${icon(item.tone === "critical" ? "alert" : item.tone === "success" ? "check" : "arrow", { size: 18 })}</span>
@@ -75,53 +64,27 @@ const actionCenterItem = (item) => `
   </a>
 `;
 
-const miniDeal = (deal) => `
-  <a class="mobile-list-card" href="#/deals/${deal.id}">
-    <span>
-      <strong>${escapeHtml(productText(deal.campaign?.title || deal.number))}</strong>
-      <small>${escapeHtml(deal.blogger?.name || "Блогер")} · ${money(deal.amount)}</small>
-    </span>
-    <span class="list-card-tail">${statusBadge(deal.status)}${icon("chevron", { size: 17 })}</span>
-  </a>
-`;
-
-const miniCampaign = (campaign) => `
-  <a class="mobile-list-card" href="#/campaigns/${campaign.id}">
-    <span>
-      <strong>${escapeHtml(productText(campaign.title))}</strong>
-      <small>${escapeHtml(campaign.brand)} · ${money(campaign.budget)}</small>
-    </span>
-    <span class="list-card-tail">${statusBadge(campaign.status)}${icon("chevron", { size: 17 })}</span>
-  </a>
-`;
+const miniDeal = (deal) => dealStatusWidget({ deal, campaign: deal.campaign, blogger: deal.blogger });
 
 const miniMessage = (thread) => {
   const messages = getState().messages[thread.id] || [];
   const last = messages[messages.length - 1];
   return `
-    <a class="mobile-list-card" href="#/chat/${thread.id}">
-      <span>
+    <a class="home-message-row" href="#/chat/${thread.id}">
+      ${profileAvatar({ person: { id: thread.bloggerId, name: thread.title }, name: productText(thread.title), size: "sm", online: true })}
+      <span class="home-message-copy">
         <strong>${escapeHtml(productText(thread.title))}</strong>
         <small>${escapeHtml(productText(last?.text || thread.subtitle || "Открыть переписку"))}</small>
       </span>
-      <span class="list-card-tail">${icon("chevron", { size: 17 })}</span>
+      <span class="list-card-tail"><small>${escapeHtml(last?.time || "")}</small>${icon("chevron", { size: 17 })}</span>
     </a>
   `;
 };
 
-const aiAdviceCard = ({ title, text, href, action }) => `
+const aiAdviceBlock = ({ title, text, href, action }) => `
   <section class="mobile-section ai-day-advice">
-    <div class="section-title">
-      <h2>AI совет</h2>
-      <a href="#/ai">AI</a>
-    </div>
-    <a class="mobile-list-card" href="${escapeHtml(href)}">
-      <span>
-        <strong>${escapeHtml(productText(title))}</strong>
-        <small>${escapeHtml(productText(text))}</small>
-      </span>
-      <span class="list-card-tail">${icon("arrow", { size: 18 })}</span>
-    </a>
+    <div class="section-title"><h2>Совет на сегодня</h2><a href="#/ai">Все</a></div>
+    ${aiSuggestionCard({ title: productText(title), text: productText(text), href, action })}
   </section>
 `;
 
@@ -144,7 +107,6 @@ export const homeView = {
       .filter((deal) => !isBlogger || deal.bloggerId === "mila-fresh")
       .map(enrichDeal)
       .slice(0, 2);
-    const visibleCampaigns = state.campaigns.slice(0, 2);
     const recentThreads = state.chatThreads.slice(0, 2);
     const heroItem = actionCenterService.hero({ role: state.currentRole });
     const automation = automationService.top({ role: state.currentRole });
@@ -188,14 +150,20 @@ export const homeView = {
       <section class="page mobile-home zero-friction-home">
         <header class="mobile-home-top">
           <div>
-            <p class="page-context">Сегодня</p>
             <h1>${isBlogger ? "Добрый день, Mila" : "Добрый день, Анна"}</h1>
             <p class="lead">${actionItems.length ? `${actionItems.length} ${actionItems.length === 1 ? "задача" : "задачи"} требуют внимания` : "Срочных задач нет"}</p>
           </div>
           ${roleSwitcher(state.currentRole)}
         </header>
 
-        ${smartHero(hero)}
+        ${premiumHero({
+          kicker: productText(hero.kicker),
+          title: productText(hero.title),
+          text: productText(hero.text),
+          actionLabel: productText(hero.action),
+          actionHref: hero.href,
+          visual: /оплат|выплат|бюджет/i.test(`${hero.title} ${hero.text}`) ? "wallet" : isBlogger ? "creative" : "documents",
+        })}
 
         <section class="mobile-action-grid zero-quick-actions">
           ${actions.map(actionCard).join("")}
@@ -222,18 +190,14 @@ export const homeView = {
 
         <section class="mobile-section">
           <div class="section-title">
-            <h2>${isBlogger ? "Мои сделки" : "Мои кампании"}</h2>
-            <a href="${isBlogger ? "#/deals" : "#/campaigns"}">Все</a>
+            <h2>Активные сделки</h2>
+            <a href="#/deals">Все</a>
           </div>
-          <div class="stack-list">
+          <div class="premium-list">
             ${
-              isBlogger
-                ? visibleDeals.length
-                  ? visibleDeals.map(miniDeal).join("")
-                  : emptyPrompt({ title: "Сделок пока нет", text: "Откройте доступные кампании и выберите подходящую.", href: "#/campaigns", action: "Кампании" })
-                : visibleCampaigns.length
-                  ? visibleCampaigns.map(miniCampaign).join("")
-                  : emptyPrompt({ title: "Кампаний пока нет", text: "Создайте первую кампанию, чтобы vbloge подобрал блогеров.", href: "#/campaigns", action: "Создать" })
+              visibleDeals.length
+                ? visibleDeals.map(miniDeal).join("")
+                : emptyPrompt({ title: "Сделок пока нет", text: isBlogger ? "Проверьте новые приглашения от брендов." : "Создайте кампанию и пригласите блогера.", href: isBlogger ? "#/invitations" : "#/campaigns", action: isBlogger ? "Приглашения" : "Создать" })
             }
           </div>
         </section>
@@ -243,14 +207,14 @@ export const homeView = {
             <h2>Последние сообщения</h2>
             <a href="#/chat">Чаты</a>
           </div>
-          <div class="stack-list">${
+          <div class="home-message-list">${
             recentThreads.length
               ? recentThreads.map(miniMessage).join("")
               : emptyPrompt({ title: "Сообщений пока нет", text: "Когда появится сделка, переписка будет здесь.", href: "#/chat", action: "Открыть" })
           }</div>
         </section>
 
-        ${aiAdviceCard({
+        ${aiAdviceBlock({
           title: aiAdvice.title,
           text: aiAdvice.text,
           href: aiAdvice.href || "#/ai",

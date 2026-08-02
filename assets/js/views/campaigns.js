@@ -2,6 +2,7 @@ import { workflowEngine } from "../services/workflowEngine.js";
 import { createCampaign, getState, isFavorite, toggleFavorite } from "../store.js";
 import { escapeHtml, money, smartEmptyState, statusBadge } from "../components/ui.js";
 import { icon } from "../components/icons.js";
+import { campaignThumbnail, premiumHero } from "../components/premium.js";
 
 const productText = (value) =>
   String(value || "")
@@ -27,45 +28,45 @@ const showSuccessToast = (text) => {
 const campaignCard = (campaign) => {
   const workflow = workflowEngine.campaign(campaign);
   const nextStep = nextStepLabel(campaign);
+  const status = campaignStatusLabel(campaign);
+  const searchValue = `${campaign.title} ${campaign.brand} ${campaign.category || ""} ${status}`.toLowerCase();
   return `
-    <article class="campaign-card buyer-campaign-card">
-      <a href="#/campaigns/${campaign.id}" class="campaign-card-main">
-        <span>
-          <strong>${escapeHtml(productText(campaign.title))}</strong>
-          <small>${escapeHtml(campaign.deadline || campaign.dates || "Без срока")} · ${money(campaign.budget)}</small>
+    <article class="premium-campaign-card" data-campaign-card data-campaign-search="${escapeHtml(searchValue)}" data-campaign-status="${escapeHtml(status.toLowerCase())}" data-campaign-deadline="${Boolean(campaign.deadline || campaign.dates)}">
+      <a href="#/campaigns/${campaign.id}" class="premium-campaign-link" aria-label="Открыть кампанию ${escapeHtml(productText(campaign.title))}">
+        ${campaignThumbnail({ campaign, className: "premium-campaign-media" })}
+        <span class="premium-campaign-copy">
+          <span class="premium-campaign-heading">
+            <span><small>${escapeHtml(campaign.brand)} · ${escapeHtml(campaign.category || "Кампания")}</small><strong>${escapeHtml(productText(campaign.title))}</strong></span>
+            ${statusBadge(status)}
+          </span>
+          <span class="premium-campaign-facts">
+            <span><small>Бюджет</small><strong>${money(campaign.budget)}</strong></span>
+            <span><small>Дедлайн</small><strong>${escapeHtml(campaign.deadline || campaign.dates || "Без срока")}</strong></span>
+          </span>
+          <span class="premium-campaign-next">
+            <span><small>Следующий шаг</small><strong>${escapeHtml(nextStep)}</strong></span>
+            ${icon("chevron", { size: 18 })}
+          </span>
+          <span class="premium-progress-row"><i><b style="width:${workflow?.progress || 12}%"></b></i><strong>${workflow?.progress || campaign.progress || 0}%</strong></span>
         </span>
-        ${statusBadge(campaignStatusLabel(campaign))}
       </a>
-      <div class="campaign-card-meta">
-        <span><small>Следующий шаг</small><strong>${escapeHtml(nextStep)}</strong></span>
-        ${icon("chevron", { size: 18 })}
-      </div>
-      <div class="campaign-workflow-mini" aria-label="Прогресс кампании">
-        <i style="width: ${workflow?.progress || 12}%"></i>
-      </div>
-      <div class="campaign-card-footer">
-        <a href="#/campaigns/${campaign.id}">Продолжить</a>
-        <button class="icon-button" type="button" data-fav-campaign="${escapeHtml(campaign.id)}" aria-label="${isFavorite("campaigns", campaign.id) ? "Убрать из избранного" : "Добавить в избранное"}">${icon("favorite", { size: 17 })}</button>
-      </div>
+      <button class="icon-button premium-favorite ${isFavorite("campaigns", campaign.id) ? "selected" : ""}" type="button" data-fav-campaign="${escapeHtml(campaign.id)}" aria-label="${isFavorite("campaigns", campaign.id) ? "Убрать из избранного" : "Добавить в избранное"}">${icon("favorite", { size: 17 })}</button>
     </article>
   `;
 };
 
 const smartHero = ({ isBlogger, campaigns }) => {
-  if (isBlogger) return "";
   const active = campaigns.find((campaign) => workflowEngine.campaign(campaign)?.currentIndex < 7) || campaigns[0];
   if (!active) return "";
-  return `
-    <section class="smart-hero buyer-journey-hero">
-      <span class="smart-hero-icon" aria-hidden="true">${icon("campaigns", { size: 21 })}</span>
-      <div>
-        <span>Продолжить работу</span>
-        <strong>${escapeHtml(productText(active.title))}</strong>
-        <p>${escapeHtml(nextStepLabel(active))}</p>
-      </div>
-      <a class="btn" href="#/campaigns/${active.id}">Продолжить${icon("arrow", { size: 18 })}</a>
-    </section>
-  `;
+  return premiumHero({
+    kicker: isBlogger ? "Подходит вам" : "Продолжить работу",
+    title: productText(active.title),
+    text: isBlogger ? `${money(active.budget)} · до ${active.deadline}` : nextStepLabel(active),
+    actionLabel: isBlogger ? "Посмотреть" : "Продолжить",
+    actionHref: `#/campaigns/${active.id}`,
+    campaign: active,
+    visual: "campaign",
+  });
 };
 
 const createWizard = () => `
@@ -184,13 +185,13 @@ export const campaignsView = {
         <section class="mobile-filter-bar buyer-search-strip">
           <label class="mobile-inline-search">
             <span aria-hidden="true">${icon("search", { size: 19 })}</span>
-            <input type="search" placeholder="Найти кампанию" aria-label="Найти кампанию" />
+            <input type="search" placeholder="Найти кампанию" aria-label="Найти кампанию" data-campaign-search-input />
           </label>
           <div class="search-tools">
-            <button class="search-chip active" type="button">Все</button>
-            <button class="search-chip" type="button">Поиск блогеров</button>
-            <button class="search-chip" type="button">Отклики</button>
-            <button class="search-chip" type="button">Дедлайны</button>
+            <button class="search-chip active" type="button" data-campaign-filter="all">Все</button>
+            <button class="search-chip" type="button" data-campaign-filter="bloggers">Поиск блогеров</button>
+            <button class="search-chip" type="button" data-campaign-filter="responses">Отклики</button>
+            <button class="search-chip" type="button" data-campaign-filter="deadlines">Дедлайны</button>
           </div>
         </section>
 
@@ -199,10 +200,38 @@ export const campaignsView = {
         <div class="campaign-list">
           ${campaigns.length ? campaigns.map(campaignCard).join("") : smartEmptyState({ title: "Кампаний пока нет", text: "Создайте первую кампанию, и vbloge сразу предложит блогеров.", action: { href: "#campaign-create", label: "Создать кампанию" } })}
         </div>
+        <div class="smart-state campaign-filter-empty" data-campaign-filter-empty hidden><strong>Ничего не найдено</strong><span>Измените запрос или выберите другой фильтр.</span></div>
       </section>
     `;
   },
   mount({ router }) {
+    const searchInput = document.querySelector("[data-campaign-search-input]");
+    const filterButtons = [...document.querySelectorAll("[data-campaign-filter]")];
+    const campaignCards = [...document.querySelectorAll("[data-campaign-card]")];
+    let activeFilter = "all";
+    const applyCampaignFilters = () => {
+      const query = searchInput?.value.trim().toLowerCase() || "";
+      campaignCards.forEach((card) => {
+        const status = card.dataset.campaignStatus;
+        const matchesSearch = !query || card.dataset.campaignSearch.includes(query);
+        const matchesFilter = activeFilter === "all"
+          || (activeFilter === "bloggers" && /блогер|подбор|поиск/.test(status))
+          || (activeFilter === "responses" && /отклик|ответ|подтверж/.test(status))
+          || (activeFilter === "deadlines" && card.dataset.campaignDeadline === "true");
+        card.hidden = !(matchesSearch && matchesFilter);
+      });
+      const empty = document.querySelector("[data-campaign-filter-empty]");
+      if (empty) empty.hidden = campaignCards.some((card) => !card.hidden);
+    };
+    searchInput?.addEventListener("input", applyCampaignFilters);
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        activeFilter = button.dataset.campaignFilter;
+        filterButtons.forEach((item) => item.classList.toggle("active", item === button));
+        applyCampaignFilters();
+      });
+    });
+
     const form = document.querySelector("#campaign-form");
     if (form) {
       if (window.sessionStorage.getItem("vbloge.openCampaignCreate") === "1") {

@@ -1,6 +1,7 @@
 import { enrichDeal, getState } from "../store.js";
 import { escapeHtml, money, pageHeader, smartEmptyState, statusBadge } from "../components/ui.js";
 import { icon } from "../components/icons.js";
+import { campaignThumbnail, profileAvatar } from "../components/premium.js";
 
 const productText = (value) =>
   String(value || "")
@@ -16,9 +17,11 @@ const dealCard = (deal) => {
   return `
     <article class="deal-list-card">
       <a class="deal-list-main" href="#/deals/${deal.id}">
-        <span>
+        ${campaignThumbnail({ campaign, className: "deal-list-thumbnail" })}
+        <span class="deal-list-copy">
           <strong>${escapeHtml(productText(campaign.title))}</strong>
-          <small>${escapeHtml(blogger.name)} · ${escapeHtml(deal.number)}</small>
+          <small class="deal-list-person">${profileAvatar({ person: blogger, size: "xs", online: true })}${escapeHtml(blogger.name)} · ${escapeHtml(deal.number)}</small>
+          <span class="deal-list-mobile-facts"><b>${money(deal.amount)}</b><small>${escapeHtml(deal.due || "Без срока")}</small></span>
         </span>
         <span class="list-card-tail">${statusBadge(deal.status)}${icon("chevron", { size: 17 })}</span>
       </a>
