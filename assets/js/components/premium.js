@@ -69,7 +69,7 @@ export const profileImage = (person = {}) => `./assets/images/profiles/${profile
 const mediaFrame = ({ src, alt, className = "", loading = "lazy", fallback = "VB" }) => `
   <span class="media-frame ${escapeHtml(className)}">
     <span class="media-fallback" aria-hidden="true">${escapeHtml(fallback)}</span>
-    <img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" loading="${loading}" decoding="async" data-premium-media />
+    <img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" loading="${loading}" decoding="async" fetchpriority="${loading === "eager" ? "high" : "auto"}" draggable="false" data-premium-media />
   </span>
 `;
 
